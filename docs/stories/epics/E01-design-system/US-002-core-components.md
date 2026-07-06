@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -37,13 +37,21 @@ Reusable component kit (buttons, chips, search bar, badges, cards, skeletons) ma
 ## Design Notes
 
 - UI surfaces: CafeMood Design System (components)
-- Commands / Queries / API / Tables: to be defined when the story is selected
-  and the data model exists.
+- Commands / Queries / API / Tables: none for this foundation story.
+- Components are implemented under `src/components/ui` with one clear file per
+  primitive and a barrel export in `src/components/ui/index.ts`.
+- `src/app/index.tsx` now consumes the UI kit as a component showcase rather
+  than hand-coding component internals on the screen.
+- Search bar, AI summary card, collection card, empty state card, loading
+  skeleton, and filter row were derived from their in-context uses in the
+  Complete App and system-state frames.
+- New component state colors were added to `src/constants/theme.ts` so visual
+  values stay centralized.
 
 ## Validation
 
 When updating durable proof status, use numeric booleans:
-`scripts/bin/harness-cli story update --id US-002 --unit 1 --integration 1 --e2e 0 --platform 0`.
+`scripts/bin/harness-cli story update --id US-002 --unit 1 --integration 1 --e2e 0 --platform 1`.
 
 | Layer | Expected proof |
 | --- | --- |
@@ -55,8 +63,17 @@ When updating durable proof status, use numeric booleans:
 
 ## Harness Delta
 
-None yet.
+- `US-002` marked `in_progress` before implementation and verified through
+  `scripts/bin/harness-cli story verify US-002`.
 
 ## Evidence
 
-None yet - story is planned, not selected for implementation.
+- `npm run lint` passed.
+- `npx tsc --noEmit` passed.
+- `scripts/bin/harness-cli story verify US-002` passed.
+- `rg` scan found hard-coded colors and rgba values only inside
+  `src/constants/theme.ts`, the intended token source.
+- iPhone 15 Pro simulator smoke via Expo Go on iOS 17.2 passed after restarting
+  Metro with a cleared cache: the Core UI Kit screen rendered buttons, chips,
+  search bar, score badges, and AI summary card without visible overlap.
+  Screenshot captured at `/tmp/cafemood-ios-simulator-us002.png`.
