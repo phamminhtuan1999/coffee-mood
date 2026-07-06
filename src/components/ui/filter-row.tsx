@@ -32,7 +32,6 @@ export function FilterRow({ label, hint, options, selected }: FilterRowProps) {
         }}
       >
         <Text
-          selectable
           style={{
             ...theme.typography.bodySmall,
             fontFamily: theme.fonts.family.sansSemibold,
@@ -42,7 +41,6 @@ export function FilterRow({ label, hint, options, selected }: FilterRowProps) {
           {label}
         </Text>
         <Text
-          selectable
           style={{
             ...theme.typography.caption,
             color: theme.colors.text.muted,

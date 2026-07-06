@@ -41,7 +41,6 @@ export function ScoreBadge({ label, score, tone = "great" }: ScoreBadgeProps) {
         }}
       />
       <Text
-        selectable
         style={{
           ...theme.typography.chipLabel,
           color: theme.colors.text.espresso700,
@@ -50,7 +49,6 @@ export function ScoreBadge({ label, score, tone = "great" }: ScoreBadgeProps) {
         {label}
       </Text>
       <Text
-        selectable
         style={{
           ...theme.typography.chipLabel,
           fontFamily: theme.fonts.family.sansBold,

@@ -29,7 +29,6 @@ export function CollectionCard({
         borderWidth: 1,
         borderColor: theme.colors.surface.borderSoft,
         backgroundColor: theme.colors.surface.cardCream,
-        boxShadow: theme.shadows.card,
       }}
     >
       <View style={{ height: 92 }}>
@@ -54,7 +53,6 @@ export function CollectionCard({
       </View>
       <View>
         <Text
-          selectable
           style={{
             ...theme.typography.sectionTitle,
             color: theme.colors.text.espresso900,
@@ -63,7 +61,6 @@ export function CollectionCard({
           {title}
         </Text>
         <Text
-          selectable
           style={{
             ...theme.typography.caption,
             color: theme.colors.text.muted,

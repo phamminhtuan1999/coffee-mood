@@ -33,7 +33,6 @@ export default function Index() {
     >
       <View style={{ gap: theme.spacing.sm }}>
         <Text
-          selectable
           style={{
             ...theme.typography.caption,
             color: theme.colors.brand.terracotta,
@@ -43,7 +42,6 @@ export default function Index() {
           Core UI Kit
         </Text>
         <Text
-          selectable
           style={{
             ...theme.typography.display,
             color: theme.colors.text.espresso900,
@@ -52,7 +50,6 @@ export default function Index() {
           CafeMood Map
         </Text>
         <Text
-          selectable
           style={{
             ...theme.typography.body,
             color: theme.colors.text.muted,

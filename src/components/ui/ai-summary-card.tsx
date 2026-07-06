@@ -45,7 +45,6 @@ export function AISummaryCard({
           }}
         >
           <Text
-            selectable
             style={{
               ...theme.typography.caption,
               color: theme.colors.text.espresso900,
@@ -56,7 +55,6 @@ export function AISummaryCard({
         </View>
         {!compact ? (
           <Text
-            selectable
             style={{
               ...theme.typography.caption,
               color: theme.colors.text.muted,
@@ -68,7 +66,6 @@ export function AISummaryCard({
         ) : null}
       </View>
       <Text
-        selectable
         style={{
           ...(compact ? theme.typography.caption : theme.typography.bodySmall),
           flex: compact ? 1 : undefined,

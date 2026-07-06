@@ -21,7 +21,6 @@ export function LoadingSkeleton({ title, hint }: LoadingSkeletonProps) {
       }}
     >
       <Text
-        selectable
         style={{
           ...theme.typography.caption,
           color: theme.colors.text.muted,
@@ -54,7 +53,6 @@ export function LoadingSkeleton({ title, hint }: LoadingSkeletonProps) {
         }}
       />
       <Text
-        selectable
         style={{
           ...theme.typography.caption,
           color: theme.colors.text.muted,

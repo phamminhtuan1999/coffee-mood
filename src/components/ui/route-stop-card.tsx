@@ -37,7 +37,6 @@ export function RouteStopCard({
           }}
         >
           <Text
-            selectable
             style={{
               ...theme.typography.caption,
               color: theme.colors.background.cream50,
@@ -82,7 +81,6 @@ export function RouteStopCard({
         />
         <View style={{ flex: 1 }}>
           <Text
-            selectable
             style={{
               ...theme.typography.bodySmall,
               fontFamily: theme.fonts.family.sansSemibold,
@@ -92,7 +90,6 @@ export function RouteStopCard({
             {name}
           </Text>
           <Text
-            selectable
             style={{
               ...theme.typography.caption,
               color: theme.colors.text.muted,
