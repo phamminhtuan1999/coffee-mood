@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    body { margin: 0; }
+    @keyframes mapPulse { 0% { transform: scale(0.4); opacity: 0.8; } 100% { transform: scale(1.6); opacity: 0; } }
+    .leaflet-tile-pane { filter: sepia(0.30) saturate(0.75) hue-rotate(-8deg) brightness(1.03) contrast(0.97); }
+    .leaflet-container { background: #EFE6D8; }
+    .leaflet-control-attribution { background: rgba(250,247,240,0.7); font-size: 9px; color: #7B6A5E; border-radius: 6px; }
+    .leaflet-bottom.leaflet-right .leaflet-control { margin-bottom: 158px; margin-right: 10px; }
+  </style>
+</helmet>
+
+<div style="font-family: 'Inter', sans-serif; background: #241A14; min-height: 100vh; padding: 72px 56px 100px;">
+
+  <div style="margin-bottom: 56px;">
+    <div style="font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #C97955;">CafeMood Map</div>
+    <div style="font-family: 'Playfair Display', serif; font-size: 34px; font-weight: 600; color: #FAF7F0; margin-top: 10px;">Core App Screens</div>
+  </div>
+
+  <div style="display: flex; gap: 48px; flex-wrap: wrap; align-items: flex-start;">
+
+    <!-- ============ SCREEN 1: MOOD ONBOARDING ============ -->
+    <div data-screen-label="01 — Mood Onboarding" style="display: flex; flex-direction: column; align-items: center; gap: 18px;">
+      <div style="{{ styles.screenLabel }}">01 — Mood Selection Onboarding</div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ frameWidth }}" height="{{ frameHeight }}" hint-size="390,844">
+        <div style="position: relative; height: 100%; overflow: hidden; background: #FAF7F0;">
+          <div style="{{ styles.grain }}"></div>
+          <div style="position: relative; height: 100%; padding: 84px 24px 0; box-sizing: border-box; display: flex; flex-direction: column;">
+            <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #C97955;">Good Morning</div>
+            <div style="font-family: 'Playfair Display', serif; font-size: 29px; font-weight: 600; line-height: 1.18; color: #241A14; margin-top: 10px;">What's your coffee mood today?</div>
+            <div style="font-size: 14px; color: #7B6A5E; margin-top: 10px; line-height: 1.5;">Pick a few — we'll shape your map.</div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px;">
+              <sc-for list="{{ moodCards }}" as="m" hint-placeholder-count="6">
+                <div onClick="{{ m.onClick }}" style="{{ m.cardStyle }}">
+                  <div style="{{ m.photoStyle }}"></div>
+                  <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(36,26,20,0) 45%, rgba(36,26,20,0.55) 100%); border-radius: 20px;"></div>
+                  <div style="{{ m.checkStyle }}">{{ m.checkGlyph }}</div>
+                  <div style="position: absolute; left: 12px; bottom: 11px; right: 12px; color: #FAF7F0; font-size: 14px; font-weight: 600;">{{ m.label }}</div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="flex: 1;"></div>
+            <div style="padding: 16px 0 30px; background: #FAF7F0;">
+              <div style="text-align: center; font-size: 12px; color: #7B6A5E; margin-bottom: 10px;">{{ moodSelectedCount }} selected</div>
+              <div style="padding: 16px; background: #241A14; color: #FAF7F0; border-radius: 18px; font-size: 15px; font-weight: 600; text-align: center; box-shadow: 0 6px 16px rgba(36,26,20,0.15);">Find my cafés →</div>
+            </div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- ============ SCREEN 2: MAP ============ -->
+    <div data-screen-label="02 — Aesthetic Map" style="display: flex; flex-direction: column; align-items: center; gap: 18px;">
+      <div style="{{ styles.screenLabel }}">02 — Main Aesthetic Map</div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ frameWidth }}" height="{{ frameHeight }}" hint-size="390,844">
+        <div style="position: relative; height: 100%; overflow: hidden; background: #EFE6D8;">
+          <!-- live map: Leaflet + OpenStreetMap (CARTO tiles), warmed to brand palette -->
+          <div ref="{{ mapRef }}" style="position: absolute; inset: 0; z-index: 0; background: #EFE6D8;"></div>
+          <div style="{{ styles.grain }}"></div>
+
+          <!-- floating search pill -->
+          <div style="position: absolute; top: 64px; left: 20px; right: 20px; height: 52px; border-radius: 26px; background: rgba(255,252,246,0.82); backdrop-filter: blur(14px); box-shadow: 0 8px 22px rgba(36,26,20,0.12); display: flex; align-items: center; gap: 10px; padding: 0 8px 0 18px;">
+            <div style="width: 14px; height: 14px; border: 2px solid #7B6A5E; border-radius: 50%; position: relative; flex-shrink: 0;">
+              <div style="position: absolute; width: 7px; height: 2px; background: #7B6A5E; right: -6px; bottom: -1px; transform: rotate(45deg);"></div>
+            </div>
+            <div style="font-size: 14px; color: #7B6A5E; flex: 1;">Search cafés, neighborhoods…</div>
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(36,26,20,0.06); display: flex; align-items: center; justify-content: center; font-size: 15px; color: #4A352A; flex-shrink: 0;">≡</div>
+          </div>
+
+          <!-- floating vibe chip row -->
+          <div style="position: absolute; top: 128px; left: 20px; right: 0; display: flex; gap: 8px; overflow: hidden;">
+            <sc-for list="{{ mapChips }}" as="chip" hint-placeholder-count="4">
+              <div onClick="{{ chip.onClick }}" style="{{ chip.style }}">{{ chip.label }}</div>
+            </sc-for>
+          </div>
+
+          <!-- floating bottom sheet (collapsed) -->
+          <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 20px 40px; background: rgba(250,247,240,0.92); backdrop-filter: blur(16px); border-radius: 32px 32px 0 0; box-shadow: 0 -16px 40px rgba(36,26,20,0.14);">
+            <div style="width: 36px; height: 4px; background: rgba(36,26,20,0.15); border-radius: 999px; margin: 0 auto 14px;"></div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="{{ selectedCafe.thumbStyle }}"></div>
+              <div style="flex: 1;">
+                <div style="font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 600; color: #241A14;">{{ selectedCafe.name }}</div>
+                <div style="font-size: 12px; color: #7B6A5E; margin-top: 2px;">{{ selectedCafe.meta }}</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 5px; padding: 7px 12px; border-radius: 12px; background: rgba(111,139,94,0.14);">
+                <div style="width: 7px; height: 7px; border-radius: 50%; background: #6F8B5E;"></div>
+                <div style="font-size: 13px; font-weight: 700; color: #241A14;">{{ selectedCafe.score }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- ============ SCREEN 3: CAFE DETAIL ============ -->
+    <div data-screen-label="03 — Cafe Detail" style="display: flex; flex-direction: column; align-items: center; gap: 18px;">
+      <div style="{{ styles.screenLabel }}">03 — Café Detail</div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ frameWidth }}" height="{{ frameHeight }}" hint-size="390,844">
+        <div style="position: relative; height: 100%; overflow: hidden; background: #FAF7F0;">
+          <div style="position: absolute; inset: 0; overflow-y: auto;">
+            <div style="position: relative; width: 100%; height: 320px; background: repeating-linear-gradient(135deg, #D8BFA5, #D8BFA5 12px, #C9AC8C 12px, #C9AC8C 24px);">
+              <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(36,26,20,0.18) 0%, rgba(36,26,20,0) 30%, rgba(36,26,20,0) 70%, rgba(250,247,240,0.9) 100%);"></div>
+              <div style="position: absolute; top: 58px; left: 20px; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,252,246,0.75); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; font-size: 20px; color: #241A14; font-weight: 600;">‹</div>
+              <div onClick="{{ toggleSave }}" style="position: absolute; top: 58px; right: 20px; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,252,246,0.75); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; font-size: 17px; color: #C97955;">{{ saveIcon }}</div>
+              <div style="position: absolute; bottom: 14px; right: 16px; padding: 5px 11px; border-radius: 999px; background: rgba(36,26,20,0.45); color: #FAF7F0; font-size: 11px; font-weight: 600;">1 / 8</div>
+            </div>
+
+            <div style="padding: 18px 20px 0;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                  <div style="font-family: 'Playfair Display', serif; font-size: 27px; font-weight: 600; color: #241A14;">Marigold &amp; Oak</div>
+                  <div style="font-size: 13px; color: #7B6A5E; margin-top: 5px;">Fillmore District · 0.4 mi · Open until 6pm</div>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 8px; margin-top: 14px;">
+                <sc-for list="{{ detailTags }}" as="tag" hint-placeholder-count="3">
+                  <div style="padding: 7px 14px; border-radius: 999px; background: rgba(216,191,165,0.4); font-size: 12px; font-weight: 500; color: #4A352A;">{{ tag }}</div>
+                </sc-for>
+              </div>
+
+              <div style="display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap;">
+                <sc-for list="{{ detailScores }}" as="sb" hint-placeholder-count="4">
+                  <div style="display:flex; align-items:center; gap:8px; padding:9px 14px; border-radius:14px; background: rgba(255,252,246,0.9); border:1px solid rgba(36,26,20,0.08);">
+                    <div style="width: 7px; height: 7px; border-radius: 50%; background: {{ sb.dot }};"></div>
+                    <div style="font-size: 12px; font-weight: 500; color: #4A352A;">{{ sb.label }}</div>
+                    <div style="font-size: 13px; font-weight: 700; color: #241A14;">{{ sb.score }}</div>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="margin-top: 20px; background: rgba(250,247,240,0.9); border: 1px solid rgba(36,26,20,0.08); border-radius: 20px; padding: 18px 20px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                  <div style="width: 24px; height: 24px; border-radius: 50%; background: #D8BFA5; display: flex; align-items: center; justify-content: center; font-size: 12px;">✦</div>
+                  <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #7B6A5E;">Vibe Summary</div>
+                </div>
+                <div style="font-size: 14px; line-height: 1.6; color: #4A352A;">A sunlit, plant-lined café with communal oak tables — ideal for slow mornings, laptop work, and window-light photos. Gets busy after noon.</div>
+              </div>
+
+              <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #7B6A5E; margin-top: 24px;">Photos</div>
+              <div style="display: flex; gap: 10px; margin-top: 12px; overflow: hidden;">
+                <sc-for list="{{ galleryThumbs }}" as="g" hint-placeholder-count="4">
+                  <div style="{{ g.style }}"></div>
+                </sc-for>
+              </div>
+
+              <div style="height: 110px;"></div>
+            </div>
+          </div>
+
+          <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 20px 30px; background: rgba(250,247,240,0.94); backdrop-filter: blur(14px); border-top: 1px solid rgba(36,26,20,0.08); display: flex; gap: 10px;">
+            <div style="flex: 1; padding: 14px; text-align: center; border-radius: 16px; border: 1.5px solid rgba(36,26,20,0.16); font-size: 13px; font-weight: 600; color: #241A14;">Directions</div>
+            <div style="flex: 1.3; padding: 14px; text-align: center; border-radius: 16px; background: #241A14; color: #FAF7F0; font-size: 13px; font-weight: 600; box-shadow: 0 6px 16px rgba(36,26,20,0.14);">Save to Route</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- ============ SCREEN 4: ROUTE ============ -->
+    <div data-screen-label="04 — Visual Route" style="display: flex; flex-direction: column; align-items: center; gap: 18px;">
+      <div style="{{ styles.screenLabel }}">04 — Visual Café Route</div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ frameWidth }}" height="{{ frameHeight }}" hint-size="390,844">
+        <div style="position: relative; height: 100%; overflow: hidden; background: #FAF7F0;">
+          <div style="{{ styles.grain }}"></div>
+          <div style="position: relative; height: 100%; padding: 62px 20px 0; box-sizing: border-box; display: flex; flex-direction: column;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(36,26,20,0.05); display: flex; align-items: center; justify-content: center; font-size: 20px; color: #241A14; font-weight: 600;">‹</div>
+            <div style="font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 600; color: #241A14; margin-top: 14px;">Your Café Route</div>
+            <div style="font-size: 13px; color: #7B6A5E; margin-top: 6px;">3 stops · 1.2 mi · ~45 min</div>
+
+            <div style="position: relative; height: 168px; border-radius: 24px; overflow: hidden; margin-top: 18px; background: #EFE6D8;">
+              <div style="position: absolute; top: -20px; right: -30px; width: 150px; height: 140px; background: rgba(125,139,100,0.3); border-radius: 45% 55% 60% 40% / 50% 45% 55% 50%;"></div>
+              <div style="position: absolute; bottom: -30px; left: -40px; width: 170px; height: 140px; background: rgba(216,191,165,0.5); border-radius: 55% 45% 40% 60% / 55% 50% 50% 45%;"></div>
+              <svg width="100%" height="100%" viewBox="0 0 350 168" style="position: absolute; inset: 0;">
+                <polyline points="46,120 140,52 230,96 304,44" fill="none" stroke="#C97955" stroke-width="2.5" stroke-dasharray="1 9" stroke-linecap="round"/>
+              </svg>
+              <div style="position: absolute; left: 34px; top: 108px; width: 22px; height: 22px; border-radius: 50%; background: #241A14; border: 3px solid #FAF7F0; box-shadow: 0 4px 10px rgba(36,26,20,0.25);"></div>
+              <div style="position: absolute; left: 128px; top: 40px; width: 22px; height: 22px; border-radius: 50%; background: #C97955; border: 3px solid #FAF7F0; box-shadow: 0 4px 10px rgba(36,26,20,0.25);"></div>
+              <div style="position: absolute; left: 218px; top: 84px; width: 22px; height: 22px; border-radius: 50%; background: #C97955; border: 3px solid #FAF7F0; box-shadow: 0 4px 10px rgba(36,26,20,0.25);"></div>
+              <div style="position: absolute; left: 292px; top: 32px; width: 22px; height: 22px; border-radius: 50%; background: #6F8B5E; border: 3px solid #FAF7F0; box-shadow: 0 4px 10px rgba(36,26,20,0.25);"></div>
+            </div>
+
+            <div style="margin-top: 22px; flex: 1; overflow: hidden;">
+              <sc-for list="{{ routeStops }}" as="stop" hint-placeholder-count="3">
+                <div style="display: flex; gap: 14px;">
+                  <div style="display: flex; flex-direction: column; align-items: center; width: 16px;">
+                    <div style="{{ stop.dotStyle }}"></div>
+                    <sc-if value="{{ stop.showLine }}" hint-placeholder-val="{{ true }}">
+                      <div style="width: 2px; flex: 1; background: rgba(36,26,20,0.12); min-height: 34px;"></div>
+                    </sc-if>
+                  </div>
+                  <div style="background: rgba(255,252,246,0.9); border: 1px solid rgba(36,26,20,0.08); border-radius: 18px; padding: 12px 14px; margin-bottom: 12px; flex: 1; display: flex; align-items: center; gap: 12px;">
+                    <div style="{{ stop.photoStyle }}"></div>
+                    <div style="flex: 1;">
+                      <div style="font-size: 14px; font-weight: 600; color: #241A14;">{{ stop.name }}</div>
+                      <div style="font-size: 12px; color: #7B6A5E; margin-top: 2px;">{{ stop.tag }}</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(2,1fr); gap: 3px;">
+                      <sc-for list="{{ dragDots }}" as="d" hint-placeholder-count="6">
+                        <div style="width: 3px; height: 3px; border-radius: 50%; background: rgba(36,26,20,0.25);"></div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="padding: 10px 0 28px;">
+              <div style="padding: 16px; background: #241A14; color: #FAF7F0; border-radius: 18px; font-size: 15px; font-weight: 600; text-align: center; box-shadow: 0 6px 16px rgba(36,26,20,0.15);">Start Route</div>
+            </div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    selectedMoods: { 0: true, 2: true, 4: true },
+    mapChipSelected: { 0: true },
+    selectedPin: 1,
+    saved: false,
+  };
+
+  mapRef = React.createRef();
+  pins = [
+    { lat: 37.7885, lng: -122.4375, c1: '#D8BFA5', c2: '#8A5A3C', name: 'Fernway Coffee', meta: '0.2 mi · Quiet', score: '8.9' },
+    { lat: 37.7861, lng: -122.4331, c1: '#C97955', c2: '#8A5A3C', name: 'Marigold & Oak', meta: '0.4 mi · Aesthetic', score: '9.2' },
+    { lat: 37.7833, lng: -122.4371, c1: '#7D8B64', c2: '#5f6b4c', name: 'Terrace & Thistle', meta: '0.6 mi · Outdoor', score: '8.1' },
+    { lat: 37.7846, lng: -122.4305, c1: '#D8BFA5', c2: '#B8996F', name: 'Hearth Supply Co.', meta: '0.8 mi · Work', score: '7.6' },
+  ];
+
+  componentDidMount() {
+    const tryInit = () => {
+      if (this._mapInit) return;
+      if (window.L && this.mapRef.current) this.initMap();
+      else setTimeout(tryInit, 150);
+    };
+    tryInit();
+  }
+
+  componentWillUnmount() {
+    if (this._mapRO) { this._mapRO.disconnect(); this._mapRO = null; }
+    if (this.map) { this.map.remove(); this.map = null; }
+  }
+
+  pinHtml(p, selected) {
+    const size = selected ? 60 : 48;
+    const badge = selected
+      ? `<div style="position:absolute;bottom:-6px;right:-6px;background:#6F8B5E;color:#FAF7F0;font-size:10px;font-weight:700;padding:3px 6px;border-radius:8px;border:2px solid #FAF7F0;font-family:'Inter',sans-serif;">${p.score}</div>`
+      : '';
+    return `<div style="position:relative;width:${size}px;height:${size}px;"><div style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(135deg,${p.c1},${p.c2});border:3px solid #FAF7F0;box-shadow:0 8px 22px rgba(36,26,20,0.20);box-sizing:border-box;${selected ? 'outline:2.5px solid #241A14;outline-offset:2px;' : ''}"></div>${badge}</div>`;
+  }
+
+  pinIcon(p, selected) {
+    const size = selected ? 60 : 48;
+    return window.L.divIcon({ className: '', iconSize: [size, size], iconAnchor: [size / 2, size / 2], html: this.pinHtml(p, selected) });
+  }
+
+  refreshPins() {
+    if (!this.cafeMarkers) return;
+    this.cafeMarkers.forEach((m, i) => m.setIcon(this.pinIcon(this.pins[i], i === this.state.selectedPin)));
+  }
+
+  initMap() {
+    if (this._mapInit || !window.L || !this.mapRef.current) return;
+    this._mapInit = true;
+    const L = window.L;
+    const map = L.map(this.mapRef.current, {
+      zoomControl: false, attributionControl: false,
+      center: [37.7852, -122.4340], zoom: 16,
+    });
+    this.map = map;
+    L.control.attribution({ position: 'bottomright', prefix: false }).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19, attribution: '&copy; OpenStreetMap &copy; CARTO',
+    }).addTo(map);
+    this.cafeMarkers = this.pins.map((p, i) => {
+      const m = L.marker([p.lat, p.lng], { icon: this.pinIcon(p, i === this.state.selectedPin) }).addTo(map);
+      m.on('click', () => { this.setState({ selectedPin: i }); this.refreshPins(); });
+      return m;
+    });
+    // cluster pin
+    L.marker([37.7818, -122.4315], {
+      icon: L.divIcon({ className: '', iconSize: [44, 44], iconAnchor: [22, 22],
+        html: `<div style="position:relative;width:44px;height:44px;"><div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#D8BFA5,#8A5A3C);border:3px solid #FAF7F0;box-shadow:0 8px 22px rgba(36,26,20,0.20);box-sizing:border-box;opacity:0.92;"></div><div style="position:absolute;bottom:-4px;right:-4px;background:#241A14;color:#FAF7F0;font-size:10px;font-weight:700;padding:3px 7px;border-radius:8px;border:2px solid #FAF7F0;font-family:'Inter',sans-serif;">+6</div></div>` }),
+    }).addTo(map);
+    // user location (pulsing)
+    L.marker([37.7828, -122.4352], { interactive: false,
+      icon: L.divIcon({ className: '', iconSize: [30, 30], iconAnchor: [15, 15],
+        html: `<div style="position:relative;width:30px;height:30px;"><div style="position:absolute;inset:0;border-radius:50%;background:rgba(36,26,20,0.18);animation:mapPulse 2.4s ease-out infinite;"></div><div style="position:absolute;top:8px;left:8px;width:10px;height:10px;border-radius:50%;background:#241A14;border:2px solid #FAF7F0;box-shadow:0 2px 6px rgba(36,26,20,0.3);"></div></div>` }),
+    }).addTo(map);
+    [300, 1000, 2500].forEach(t => setTimeout(() => map.invalidateSize(), t));
+    if (window.ResizeObserver) {
+      this._mapRO = new ResizeObserver(() => map.invalidateSize());
+      this._mapRO.observe(this.mapRef.current);
+    }
+  }
+
+  toggleMood(i) {
+    this.setState(s => ({ selectedMoods: { ...s.selectedMoods, [i]: !s.selectedMoods[i] } }));
+  }
+  toggleMapChip(i) {
+    this.setState(s => ({ mapChipSelected: { ...s.mapChipSelected, [i]: !s.mapChipSelected[i] } }));
+  }
+
+  renderVals() {
+    const grain = "position: absolute; inset: 0; pointer-events: none; opacity: 0.03; z-index: 1; background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\");";
+    const screenLabel = "font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #B7AB9E;";
+    const clusterCount = 'position:absolute; bottom:-4px; right:-4px; background:#241A14; color:#FAF7F0; font-size:10px; font-weight:700; padding:3px 7px; border-radius:8px; border:2px solid #FAF7F0;';
+
+    const stripe = (c1, c2, angle) => `background: repeating-linear-gradient(${angle || 135}deg, ${c1}, ${c1} 10px, ${c2} 10px, ${c2} 20px);`;
+
+    // ---------- Screen 1: mood onboarding ----------
+    const moodDefs = [
+      { label: 'Aesthetic', c1: '#D8BFA5', c2: '#C9AC8C' },
+      { label: 'Work & Focus', c1: '#EFE6D8', c2: '#E1D3BE' },
+      { label: 'Quiet Read', c1: '#C9AC8C', c2: '#B8996F' },
+      { label: 'Outdoor Sun', c1: '#E4D6C2', c2: '#D3BFA0' },
+      { label: 'Date Spot', c1: '#C97955', c2: '#B4623E' },
+      { label: 'Fresh Pastry', c1: '#7D8B64', c2: '#6C7A55' },
+    ];
+    const moodCards = moodDefs.map((m, i) => {
+      const selected = !!this.state.selectedMoods[i];
+      return {
+        label: m.label,
+        photoStyle: `position:absolute; inset:0; ${stripe(m.c1, m.c2)}`,
+        cardStyle: `position: relative; height: 118px; border-radius: 20px; overflow: hidden; cursor: pointer; box-sizing: border-box; ${selected ? 'box-shadow: 0 0 0 2.5px #C97955;' : ''}`,
+        checkStyle: `position:absolute; top:10px; right:10px; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; ${selected ? 'background:#C97955; color:#FAF7F0;' : 'background:rgba(255,255,255,0.35); border:1.5px solid rgba(255,255,255,0.8); color:transparent;'}`,
+        checkGlyph: selected ? '✓' : '',
+        onClick: () => this.toggleMood(i),
+      };
+    });
+    const moodSelectedCount = Object.values(this.state.selectedMoods).filter(Boolean).length;
+
+    // ---------- Screen 2: map ----------
+    const chipLabels2 = ['Aesthetic', 'Quiet', 'Work', 'Outdoor'];
+    const mapChips = chipLabels2.map((label, i) => {
+      const selected = !!this.state.mapChipSelected[i];
+      return {
+        label,
+        onClick: () => this.toggleMapChip(i),
+        style: `padding: 9px 16px; border-radius: 999px; font-size: 12px; font-weight: 500; white-space: nowrap; cursor: pointer; backdrop-filter: blur(10px); ${selected ? 'background:#241A14; color:#FAF7F0;' : 'background:rgba(255,252,246,0.75); color:#4A352A;'}`,
+      };
+    });
+
+    const sp = this.pins[this.state.selectedPin];
+    const selectedCafe = {
+      name: sp.name,
+      meta: sp.meta,
+      score: sp.score,
+      thumbStyle: `width:52px; height:52px; border-radius:16px; flex-shrink:0; background:linear-gradient(135deg,${sp.c1},${sp.c2});`,
+    };
+
+    // ---------- Screen 3: detail ----------
+    const detailTags = ['Aesthetic', 'Quiet', 'Work'];
+    const detailScores = [
+      { label: 'Aesthetic', score: '9.2', dot: '#6F8B5E' },
+      { label: 'Work', score: '8.4', dot: '#6F8B5E' },
+      { label: 'Coffee', score: '7.8', dot: '#B88A44' },
+      { label: 'Crowd', score: 'Calm', dot: '#6F8B5E' },
+    ];
+    const galleryDefs = [
+      ['#D8BFA5', '#C9AC8C'], ['#EFE6D8', '#E1D3BE'], ['#7D8B64', '#6C7A55'], ['#C97955', '#B4623E'],
+    ];
+    const galleryThumbs = galleryDefs.map(([c1, c2]) => ({
+      style: `width: 84px; height: 106px; border-radius: 16px; flex-shrink: 0; ${stripe(c1, c2, 125)}`,
+    }));
+
+    // ---------- Screen 4: route ----------
+    const routeDefs = [
+      { name: 'Marigold & Oak', tag: 'Start · 8:30am', c1: '#C97955', c2: '#8A5A3C', dotColor: '#241A14', showLine: true },
+      { name: 'Fernway Coffee', tag: 'Stop 2 · 10:00am', c1: '#D8BFA5', c2: '#8A5A3C', dotColor: '#C97955', showLine: true },
+      { name: 'Terrace & Thistle', tag: 'End · 11:30am', c1: '#7D8B64', c2: '#5f6b4c', dotColor: '#6F8B5E', showLine: false },
+    ];
+    const routeStops = routeDefs.map(r => ({
+      name: r.name,
+      tag: r.tag,
+      showLine: r.showLine,
+      dotStyle: `width:14px; height:14px; border-radius:50%; background:${r.dotColor}; margin-top:4px; flex-shrink:0;`,
+      photoStyle: `width:44px; height:44px; border-radius:12px; flex-shrink:0; background:linear-gradient(135deg,${r.c1},${r.c2});`,
+    }));
+    const dragDots = Array.from({ length: 6 }, () => ({}));
+
+    return {
+      frameWidth: 390, frameHeight: 844,
+      styles: { grain, screenLabel, clusterCount },
+      moodCards, moodSelectedCount,
+      mapRef: this.mapRef, mapChips, selectedCafe,
+      detailTags, detailScores, galleryThumbs,
+      saved: this.state.saved, saveIcon: this.state.saved ? '♥' : '♡',
+      toggleSave: () => this.setState(s => ({ saved: !s.saved })),
+      routeStops, dragDots,
+    };
+  }
+}
+
+</script>
+</body>
+</html>
