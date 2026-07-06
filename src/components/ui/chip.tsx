@@ -39,7 +39,6 @@ export function VibeChip({
       })}
     >
       <Text
-        selectable
         style={{
           ...theme.typography.chipLabel,
           color: disabled
@@ -84,7 +83,6 @@ export function PreferenceChip({
       })}
     >
       <Text
-        selectable
         style={{
           ...theme.typography.chipLabel,
           color: disabled

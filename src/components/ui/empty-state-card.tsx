@@ -55,7 +55,6 @@ export function EmptyStateCard({
         />
       </View>
       <Text
-        selectable
         style={{
           ...theme.typography.sectionTitle,
           fontFamily: theme.fonts.family.serifMedium,
@@ -66,7 +65,6 @@ export function EmptyStateCard({
         {title}
       </Text>
       <Text
-        selectable
         style={{
           ...theme.typography.caption,
           color: theme.colors.text.muted,

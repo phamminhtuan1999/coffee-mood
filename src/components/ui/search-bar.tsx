@@ -31,7 +31,6 @@ export function SearchBar({
           ? theme.colors.text.espresso900
           : theme.colors.surface.borderMedium,
         backgroundColor: theme.colors.surface.cardCream,
-        boxShadow: theme.shadows.pin,
       }}
     >
       <Image

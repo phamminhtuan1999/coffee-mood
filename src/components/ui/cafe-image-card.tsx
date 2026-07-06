@@ -31,7 +31,6 @@ export function CafeImageCard({
         borderRadius: theme.radius.imageCard,
         borderCurve: "continuous",
         backgroundColor: accentColor[accent],
-        boxShadow: theme.shadows.card,
       }}
     >
       <View
@@ -54,7 +53,6 @@ export function CafeImageCard({
           }}
         >
           <Text
-            selectable
             style={{
               ...theme.typography.caption,
               color: theme.colors.brand.roastedBrown,
@@ -65,7 +63,6 @@ export function CafeImageCard({
         </View>
       ) : null}
       <Text
-        selectable
         style={{
           ...theme.typography.sectionTitle,
           fontFamily: theme.fonts.family.serifMedium,
@@ -76,7 +73,6 @@ export function CafeImageCard({
       </Text>
       {meta ? (
         <Text
-          selectable
           style={{
             ...theme.typography.caption,
             color: theme.colors.background.cream100,

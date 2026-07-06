@@ -47,6 +47,8 @@ Reusable component kit (buttons, chips, search bar, badges, cards, skeletons) ma
   Complete App and system-state frames.
 - New component state colors were added to `src/constants/theme.ts` so visual
   values stay centralized.
+- Scroll performance was tightened by removing non-copyable `selectable` text
+  handlers and avoiding high-blur shadows on repeated scroll surfaces.
 
 ## Validation
 
@@ -77,3 +79,7 @@ When updating durable proof status, use numeric booleans:
   Metro with a cleared cache: the Core UI Kit screen rendered buttons, chips,
   search bar, score badges, and AI summary card without visible overlap.
   Screenshot captured at `/tmp/cafemood-ios-simulator-us002.png`.
+- Follow-up scroll responsiveness patch keeps button shadows for the component
+  contract while removing expensive card/search/icon shadows from the scrolling
+  showcase surfaces. Fresh simulator screenshot captured at
+  `/tmp/cafemood-ios-simulator-us002-scroll-fix-fresh.png`.

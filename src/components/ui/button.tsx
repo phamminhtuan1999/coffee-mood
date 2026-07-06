@@ -59,7 +59,6 @@ export function CafeButton({
       }}
     >
       <Text
-        selectable
         style={{
           ...theme.typography.bodySmall,
           fontFamily: theme.fonts.family.sansSemibold,
@@ -111,11 +110,12 @@ export function IconButton({
           : selected
             ? theme.colors.text.espresso900
             : theme.colors.surface.cardCream,
-        borderColor: theme.colors.surface.borderSoft,
+        borderColor: selected
+          ? theme.colors.text.espresso900
+          : theme.colors.surface.borderMedium,
         borderWidth: 1,
         opacity: pressed && !disabled ? 0.82 : 1,
         transform: [{ scale: pressed && !disabled ? 0.96 : 1 }],
-        boxShadow: selected ? theme.shadows.button : theme.shadows.pin,
       })}
     >
       <View style={style}>
