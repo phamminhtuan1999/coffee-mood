@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; }
+  </style>
+</helmet>
+
+<div style="font-family: 'Inter', sans-serif; background: #241A14; min-height: 100vh; padding: 72px 56px 120px;">
+
+  <div style="margin-bottom: 64px;">
+    <div style="font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #C97955;">CafeMood Map</div>
+    <div style="font-family: 'Playfair Display', serif; font-size: 40px; font-weight: 600; color: #FAF7F0; margin-top: 10px;">Missing Screens — Additions</div>
+    <div style="font-size: 14px; color: #B7AB9E; margin-top: 12px; max-width: 640px; line-height: 1.6;">Companion to “CafeMood Complete App”. Fills the gaps: bottom-sheet states in context (B5–B6), create/edit collection and share card (D4–D6), replace route stop (E5), notification preferences (G4). Same tokens, same components.</div>
+  </div>
+
+  <!-- ================================================== -->
+  <!-- SECTION B+ — DISCOVERY ADDITIONS -->
+  <!-- ================================================== -->
+  <div style="margin-bottom: 88px;">
+    <div style="{{ styles.sectionHead }}">B+ — Discovery Additions</div>
+    <div style="display: flex; gap: 40px; flex-wrap: wrap; align-items: flex-start;">
+
+      <!-- B5 SHEET COLLAPSED -->
+      <div data-screen-label="B5 — Sheet · Collapsed" style="{{ styles.frameCol }}">
+        <div style="{{ styles.screenLabel }}">B5 — Sheet · Collapsed</div>
+        <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ frameWidth }}" height="{{ frameHeight }}" hint-size="390,844">
+          <div style="position: relative; height: 100%; overflow: hidden; background: #EFE6D8;">
+            <div style="position: absolute; inset: 0; background-image: repeating-linear-gradient(0deg, rgba(36,26,20,0.06) 0 1px, transparent 1px 60px), repeating-linear-gradient(90deg, rgba(36,26,20,0.06) 0 1px, transparent 1px 60px);"></div>
+            <div style="position: absolute; top: 150px; right: -50px; width: 210px; height: 180px; background: rgba(125,139,100,0.3); border-radius: 45% 55% 60% 40% / 50% 45% 55% 50%;"></div>
+            <div style="{{ styles.grain }}"></div>
+            <div style="position: absolute; top: 260px; left: 100px; width: 58px; height: 58px; border-radius: 50%; border: 3px solid #FAF7F0; outline: 2.5px solid #241A14; outline-offset: 2px; box-shadow: 0 8px 22px rgba(36,26,20,0.2); background: linear-gradient(135deg, #C97955, #8A5A3C);"></div>
+            <div style="position: absolute; top: 252px; left: 148px; background: #6F8B5E; color: #FAF7F0; font-size: 10px; font-weight: 700; padding: 3px 6px; border-radius: 8px; border: 2px solid #FAF7F0; z-index: 2;">8.7</div>
+            <div style="position: absolute; top: 380px; left: 230px; width: 46px; height: 46px; border-radius: 50%; border: 3px solid #FAF7F0; box-shadow: 0 8px 22px rgba(36,26,20,0.2); background: linear-gradient(135deg, #D8BFA5, #C9AC8C);"></div>
+
+            <!-- collapsed preview sheet -->
+            <div style="position: absolute; left: 12px; right: 12px; bottom: 100px; background: rgba(250,247,240,0.96); backdrop-filter: blur(16px); border-radius: 28px; box-shadow: 0 16px 40px rgba(36,26,20,0.18); padding: 12px 18px 16px; z-index: 6;">
+              <div style="width: 36px; height: 4px; background: rgba(36,26,20,0.15); border-radius: 999px; margin: 0 auto 12px;"></div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 44px; height: 44px; border-radius: 13px; flex-shrink: 0; background: linear-gradient(135deg, #C97955, #8A5A3C);"></div>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 600; color: #241A14;">Mostra Coffee</div>
+                  <div style="font-size: 12px; color: #7B6A5E; margin-top: 2px;">Cozy corner café for slow mornings</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px; padding: 7px 12px; border-radius: 12px; background: rgba(111,139,94,0.14); flex-shrink: 0;">
+                  <div style="width: 7px; height: 7px; border-radius: 50%; background: #6F8B5E;"></div>
+                  <div style="font-size: 13px; font-weight: 700; color: #241A14;">8.7</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- tab bar -->
+            <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 8px 26px; background: rgba(250,247,240,0.94); backdrop-filter: blur(14px); border-top: 1px solid rgba(36,26,20,0.08); display: flex; z-index: 10;">
+              <sc-for list="{{ tabBarMap }}" as="tab" hint-placeholder-count="5">
+                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                  <svg width="22" height="22" viewBox="0 0 24 24" style="{{ tab.svgStyle }}"><path d="{{ tab.d }}"></path></svg>
+                  <div style="{{ tab.labelStyle }}">{{ tab.label }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </x-import>
+      </div>
+
+      <!-- B6 SHEET EXPANDED -->
+      <div data-screen-label="B6 — Sheet · Expanded" style="{{ styles.frameCol }}">
+        <div style="{{ styles.screenLabel }}">B6 — Sheet · Expanded</div>
+        <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ frameWidth }}" height="{{ frameHeight }}" hint-size="390,844">
+          <div style="position: relative; height: 100%; overflow: hidden; background: #EFE6D8;">
+            <div style="position: absolute; inset: 0; background-image: repeating-linear-gradient(0deg, rgba(36,26,20,0.06) 0 1px, transparent 1px 60px), repeating-linear-gradient(90deg, rgba(36,26,20,0.06) 0 1px, transparent 1px 60px);"></div>
+            <div style="{{ styles.grain }}"></div>
+
+            <!-- expanded sheet -->
+            <div style="position: absolute; left: 0; right: 0; bottom: 0; top: 116px; background: #FAF7F0; border-radius: 32px 32px 0 0; box-shadow: 0 -16px 40px rgba(36,26,20,0.22); padding: 14px 22px 30px; box-sizing: border-box; overflow: hidden;">
+              <div style="width: 36px; height: 4px; background: rgba(36,26,20,0.15); border-radius: 999px; margin: 0 auto 14px;"></div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 52px; height: 52px; border-radius: 15px; flex-shrink: 0; background: linear-gradient(135deg, #C97955, #8A5A3C);"></div>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 600; color: #241A14;">Mostra Coffee</div>
+                  <div style="font-size: 12px; color: #7B6A5E; margin-top: 2px;">North Park · 0.3 mi · Open until 4 PM</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px; padding: 7px 12px; border-radius: 12px; background: rgba(111,139,94,0.14); flex-shrink: 0;">
+                  <div style="width: 7px; height: 7px; border-radius: 50%; background: #6F8B5E;"></div>
+                  <div style="font-size: 13px; font-weight: 700; color: #241A14;">8.7</div>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 8px; margin-top: 14px;">
+                <div style="flex: 1; height: 92px; border-radius: 16px; {{ photoA }}"></div>
+                <div style="flex: 1; height: 92px; border-radius: 16px; {{ photoB }}"></div>
+                <div style="flex: 1; height: 92px; border-radius: 16px; position: relative; overflow: hidden; {{ photoC }}">
+                  <div style="position: absolute; inset: 0; background: rgba(36,26,20,0.4); display: flex; align-items: center; justify-content: center; color: #FAF7F0; font-size: 13px; font-weight: 600;">+24</div>
+                </div>
+              </div>
+
+              <div style="{{ styles.eyebrow }} margin-top: 18px;">Why it matches</div>
+              <sc-for list="{{ sheetWhy }}" as="w" hint-placeholder-count="3">
+                <div style="display: flex; gap: 10px; margin-top: 9px; align-items: flex-start;">
+                  <div style="width: 7px; height: 7px; border-radius: 50%; background: {{ w.dot }}; margin-top: 5px; flex-shrink: 0;"></div>
+                  <div style="font-size: 13px; line-height: 1.5; color: #4A352A;">{{ w.text }}</div>
+                </div>
+              </sc-for>
+
+              <div style="{{ styles.eyebrow }} margin-top: 18px;">People love</div>
+              <div style="display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap;">
+                <sc-for list="{{ sheetLoves }}" as="l" hint-placeholder-count="3">
+                  <div style="padding: 6px 13px; border-radius: 999px; background: rgba(111,139,94,0.12); font-size: 11px; font-weight: 500; color: #4A352A;">{{ l }}</div>
+                </sc-for>
+              </div>
+
+              <div style="{{ styles.eyebrow }} margin-top: 16px;">Watch out for</div>
+              <div style="display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap;">
+                <sc-for list="{{ sheetWatch }}" as="wo" hint-placeholder-count="2">
+                  <div style="padding: 6px 13px; border-radius: 999px; background: rgba(199,110,79,0.12); font-size: 11px; font-weight: 500; color: #4A352A;">{{ wo }}</div>
+                </sc-for>
+              </div>
+
+              <div style="display: flex; gap: 8px; margin-top: 20px;">
+                <div style="flex: 1.4; padding: 14px; text-align: center; border-radius: 16px; background: #241A14; color: #FAF7F0; font-size: 13px; font-weight: 600; box-shadow: 0 6px 16px rgba(36,26,20,0.14);">Add to Route</div>
+                <div style="flex: 1; padding: 14px; text-align: center; border-radius: 16px; border: 1.5px solid rgba(36,26,20,0.16); font-size: 13px; font-weight: 600; color: #241A14; box-sizing: border-box;">Directions</div>
+              </div>
+            </div>
+          </div>
+        </x-import>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================================================== -->
+  <!-- SECTION D+ — COLLECTIONS & SHARING ADDITIONS -->
+  <!-- ================================================== -->
+  <div style="margin-bottom: 88px;">
+    <div style="{{ styles.sectionHead }}">D+ — Collections &amp; Sharing Additions</div>
+    <div style="display: flex; gap: 40px; flex-wrap: wrap; align-items: flex-start;">
+
+      <!-- D4 CREATE COLLECTION -->
+      <div data-screen-label="D4 — Create Collection" style="{{ styles.frameCol }}">
+        <div style="{{ styles.screenLabel }}">D4 — Create Collection (interactive)</div>
+        <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ frameWidth }}" height="{{ frameHeight }}" hint-size="390,844">
+          <div style="position: relative; height: 100%; overflow: hidden; background: #D8C7B2;">
+            <div style="position: absolute; inset: 0; background: repeating-linear-gradient(135deg, #D8BFA5, #D8BFA5 12px, #C9AC8C 12px, #C9AC8C 24px); opacity: 0.5;"></div>
+            <div style="position: absolute; inset: 0; background: rgba(36,26,20,0.42); backdrop-filter: blur(3px);"></div>
+            <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #FAF7F0; border-radius: 32px 32px 0 0; box-shadow: 0 -16px 40px rgba(36,26,20,0.25); padding: 14px 22px 36px;">
+              <div style="width: 36px; height: 4px; background: rgba(36,26,20,0.15); border-radius: 999px; margin: 0 auto 16px;"></div>
+              <div style="font-family: 'Playfair Display', serif; font-size: 21px; font-weight: 600; color: #241A14;">New collection</div>
+              <div style="font-size: 12px; color: #7B6A5E; margin-top: 4px;">Name it after the mood, not the map.</div>
+
+              <div style="background: rgba(255,252,246,0.95); border: 1px solid rgba(36,26,20,0.12); border-radius: 16px; padding: 13px 16px; margin-top: 16px;">
+                <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #7B6A5E;">Name</div>
+                <div style="font-size: 15px; font-weight: 600; color: #241A14; margin-top: 4px;">Cute Date Cafés<span style="display: inline-block; width: 2px; height: 16px; background: #C97955; margin-left: 2px; vertical-align: -2px;"></span></div>
+              </div>
+              <div style="background: rgba(255,252,246,0.95); border: 1px solid rgba(36,26,20,0.1); border-radius: 16px; padding: 13px 16px; margin-top: 10px;">
+                <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #7B6A5E;">Description · optional</div>
+                <div style="font-size: 13px; color: #A99C8D; margin-top: 4px; font-style: italic;">Patios, window light, shareable desserts…</div>
+              </div>
+
+              <div style="{{ styles.eyebrow }} margin-top: 16px;">Suggested names</div>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
+                <sc-for list="{{ suggestedNames }}" as="n" hint-placeholder-count="4">
+                  <div style="padding: 9px 16px; border-radius: 999px; background: rgba(216,191,165,0.3); font-size: 12px; font-weight: 500; color: #4A352A;">{{ n }}</div>
+                </sc-for>
+              </div>
+
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 18px; padding: 13px 16px; border-radius: 16px; background: rgba(255,252,246,0.95); border: 1px solid rgba(36,26,20,0.1);">
+                <div>
+                  <div style="font-size: 13px; font-weight: 600; color: #241A14;">{{ privacyLabel }}</div>
+                  <div style="font-size: 11px; color: #7B6A5E; margin-top: 2px;">{{ privacySub }}</div>
+                </div>
+                <div onClick="{{ togglePrivacy }}" style="{{ privacyTrack }}">
+                  <div style="{{ privacyKnob }}"></div>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 10px; margin-top: 18px;">
+                <div style="flex: 1; padding: 15px; text-align: center; border-radius: 18px; border: 1.5px solid rgba(36,26,20,0.16); font-size: 14px; font-weight: 600; color: #241A14; box-sizing: border-box;">Cancel</div>
+                <div style="flex: 2; padding: 15px; text-align: center; border-radius: 18px; background: #241A14; color: #FAF7F0; font-size: 14px; font-weight: 600; box-shadow: 0 6px 16px rgba(36,26,20,0.2);">Create Collection</div>
+              </div>
+            </div>
+          </div>
+        </x-import>
+      </div>
+
+      <!-- D5 EDIT COLLECTION -->
+      <div data-screen-label="D5 — Edit Collection" style="{{ styles.frameCol }}">
+        <div style="{{ styles.screenLabel }}">D5 — Edit Collection</div>
+        <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ frameWidth }}" height="{{ frameHeight }}" hint-size="390,844">
+          <div style="position: relative; height: 100%; overflow: hidden; background: #FAF7F0;">
+            <div style="{{ styles.grain }}"></div>
+            <div style="position: absolute; inset: 0; overflow-y: auto;">
+              <div style="padding: 66px 22px 130px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <div style="{{ styles.backBtn }}">‹</div>
+                  <div style="font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 600; color: #241A14;">Edit collection</div>
+                </div>
+
+                <div style="position: relative; height: 120px; border-radius: 22px; overflow: hidden; margin-top: 18px; {{ coverStripe }}">
+                  <div style="position: absolute; inset: 0; background: rgba(36,26,20,0.28);"></div>
+                  <div style="position: absolute; bottom: 12px; left: 14px; padding: 8px 14px; border-radius: 999px; background: rgba(250,247,240,0.92); font-size: 11px; font-weight: 600; color: #241A14;">Change cover</div>
+                </div>
+
+                <div style="background: rgba(255,252,246,0.95); border: 1px solid rgba(36,26,20,0.12); border-radius: 16px; padding: 13px 16px; margin-top: 14px;">
+                  <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #7B6A5E;">Name</div>
+                  <div style="font-size: 15px; font-weight: 600; color: #241A14; margin-top: 4px;">Best Work Cafés in San Diego</div>
+                </div>
+                <div style="background: rgba(255,252,246,0.95); border: 1px solid rgba(36,26,20,0.1); border-radius: 16px; padding: 13px 16px; margin-top: 10px;">
+                  <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #7B6A5E;">Description</div>
+                  <div style="font-size: 13px; color: #4A352A; margin-top: 4px; line-height: 1.5;">Reliable Wi-Fi, outlets you can actually find, and seats past 9 AM.</div>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding: 13px 16px; border-radius: 16px; background: rgba(255,252,246,0.95); border: 1px solid rgba(36,26,20,0.1);">
+                  <div>
+                    <div style="font-size: 13px; font-weight: 600; color: #241A14;">{{ privacyLabel }}</div>
+                    <div style="font-size: 11px; color: #7B6A5E; margin-top: 2px;">{{ privacySub }}</div>
+                  </div>
+                  <div onClick="{{ togglePrivacy }}" style="{{ privacyTrack }}">
+                    <div style="{{ privacyKnob }}"></div>
+                  </div>
+                </div>
+
+                <div style="{{ styles.eyebrow }} margin-top: 20px;">Cafés · drag to reorder</div>
+                <sc-for list="{{ editCafes }}" as="c" hint-placeholder-count="3">
+                  <div style="display: flex; align-items: center; gap: 12px; background: rgba(255,252,246,0.92); border: 1px solid rgba(36,26,20,0.08); border-radius: 18px; padding: 11px 14px; margin-top: 9px;">
+                    <div style="font-size: 15px; color: rgba(36,26,20,0.3); letter-spacing: 1px;">≡</div>
+                    <div style="width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0; {{ c.photo }}"></div>
+                    <div style="flex: 1; min-width: 0;">
+                      <div style="font-size: 13px; font-weight: 600; color: #241A14;">{{ c.name }}</div>
+                      <div style="font-size: 11px; color: #7B6A5E; margin-top: 1px;">{{ c.meta }}</div>
+                    </div>
+                    <div style="width: 26px; height: 26px; border-radius: 50%; background: rgba(199,110,79,0.12); display: flex; align-items: center; justify-content: center; font-size: 13px; color: #C76E4F; font-weight: 700;">–</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 20px 30px; background: rgba(250,247,240,0.95); backdrop-filter: blur(14px); border-top: 1px solid rgba(36,26,20,0.08);">
+              <div style="{{ styles.primaryBtn }}">Save Changes</div>
+            </div>
+          </div>
+        </x-import>
+      </div>
+
+      <!-- D6 SHARE CAFE CARD -->
+      <div data-screen-label="D6 — Share Café Card" style="{{ styles.frameCol }}">
+        <div style="{{ styles.screenLabel }}">D6 — Share Café Card</div>
+        <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ frameWidth }}" height="{{ frameHeight }}" hint-size="390,844">
+          <div style="position: relative; height: 100%; overflow: hidden; background: #D8C7B2;">
+            <div style="position: absolute; inset: 0; background: repeating-linear-gradient(135deg, #D8BFA5, #D8BFA5 12px, #C9AC8C 12px, #C9AC8C 24px); opacity: 0.5;"></div>
+            <div style="position: absolute; inset: 0; background: rgba(36,26,20,0.5); backdrop-filter: blur(4px);"></div>
+
+            <div style="position: absolute; top: 64px; left: 0; right: 0; text-align: center; color: #FAF7F0; font-size: 14px; font-weight: 600; z-index: 2;">Share this café</div>
+
+            <!-- story card -->
+            <div style="position: absolute; top: 108px; left: 57px; width: 276px; border-radius: 28px; overflow: hidden; background: #FAF7F0; box-shadow: 0 24px 60px rgba(36,26,20,0.4); z-index: 2;">
+              <div style="position: relative; height: 240px; background: linear-gradient(135deg, #C97955, #8A5A3C);">
+                <div style="position: absolute; inset: 0; background: repeating-linear-gradient(135deg, rgba(250,247,240,0.06), rgba(250,247,240,0.06) 10px, transparent 10px, transparent 20px);"></div>
+                <div style="position: absolute; top: 14px; left: 14px; padding: 6px 13px; border-radius: 999px; background: rgba(250,247,240,0.9); font-size: 11px; font-weight: 600; color: #4A352A;">Aesthetic</div>
+                <div style="position: absolute; top: 14px; right: 14px; display: flex; align-items: center; gap: 5px; padding: 7px 12px; border-radius: 12px; background: rgba(250,247,240,0.92);">
+                  <div style="width: 7px; height: 7px; border-radius: 50%; background: #6F8B5E;"></div>
+                  <div style="font-size: 13px; font-weight: 700; color: #241A14;">9.1</div>
+                </div>
+              </div>
+              <div style="padding: 18px 20px 16px;">
+                <div style="font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 600; color: #241A14;">Mostra Coffee</div>
+                <div style="font-size: 12px; color: #7B6A5E; margin-top: 3px;">North Park · San Diego</div>
+                <div style="display: flex; gap: 9px; margin-top: 12px; align-items: flex-start;">
+                  <div style="width: 20px; height: 20px; border-radius: 50%; background: #D8BFA5; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px;">✦</div>
+                  <div style="font-size: 12px; line-height: 1.55; color: #4A352A;">Warm light, strong lattes — made for slow photo mornings.</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 7px; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(36,26,20,0.08);">
+                  <div style="width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid #C97955; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 10px; font-weight: 600; color: #241A14;">C</div>
+                  <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #7B6A5E;">CafeMood Map</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- share actions -->
+            <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #FAF7F0; border-radius: 32px 32px 0 0; box-shadow: 0 -16px 40px rgba(36,26,20,0.25); padding: 14px 22px 36px; z-index: 3;">
+              <div style="width: 36px; height: 4px; background: rgba(36,26,20,0.15); border-radius: 999px; margin: 0 auto 14px;"></div>
+              <div style="display: flex; gap: 9px;">
+                <sc-for list="{{ shareActions }}" as="a" hint-placeholder-count="3">
+                  <div style="flex: 1; padding: 14px 8px; border-radius: 16px; background: rgba(255,252,246,0.95); border: 1px solid rgba(36,26,20,0.1); text-align: center;">
+                    <div style="font-size: 16px;">{{ a.icon }}</div>
+                    <div style="font-size: 11px; font-weight: 600; color: #241A14; margin-top: 6px;">{{ a.label }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </x-import>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================================================== -->
+  <!-- SECTION E+ — PLANNING ADDITIONS -->
+  <!-- ================================================== -->
+  <div style="margin-bottom: 88px;">
+    <div style="{{ styles.sectionHead }}">E+ — Planning Additions</div>
+    <div style="display: flex; gap: 40px; flex-wrap: wrap; align-items: flex-start;">
+
+      <!-- E5 REPLACE ROUTE STOP -->
+      <div data-screen-label="E5 — Replace Route Stop" style="{{ styles.frameCol }}">
+        <div style="{{ styles.screenLabel }}">E5 — Replace Route Stop (interactive)</div>
+        <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ frameWidth }}" height="{{ frameHeight }}" hint-size="390,844">
+          <div style="position: relative; height: 100%; overflow: hidden; background: #FAF7F0;">
+            <div style="{{ styles.grain }}"></div>
+            <div style="position: absolute; inset: 0; overflow-y: auto;">
+              <div style="padding: 66px 22px 130px;">
+                <div style="{{ styles.backBtn }}">‹</div>
+                <div style="font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 600; color: #241A14; margin-top: 16px;">Replace stop 2</div>
+                <div style="font-size: 13px; color: #7B6A5E; margin-top: 6px;">Dessert café · keep the route flowing</div>
+
+                <div style="display: flex; align-items: center; gap: 12px; background: rgba(36,26,20,0.04); border: 1px dashed rgba(36,26,20,0.18); border-radius: 18px; padding: 12px 14px; margin-top: 16px;">
+                  <div style="width: 28px; height: 28px; border-radius: 50%; background: #C97955; border: 3px solid #FAF7F0; box-shadow: 0 4px 10px rgba(36,26,20,0.2); display: flex; align-items: center; justify-content: center; color: #FAF7F0; font-size: 12px; font-weight: 700; flex-shrink: 0;">2</div>
+                  <div style="width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0; {{ currentStopPhoto }}"></div>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-size: 13px; font-weight: 600; color: #241A14;">Fernway Bakes</div>
+                    <div style="font-size: 11px; color: #7B6A5E; margin-top: 1px;">Currently in route · dessert stop</div>
+                  </div>
+                </div>
+
+                <div style="{{ styles.eyebrow }} margin-top: 22px;">Alternatives nearby</div>
+                <sc-for list="{{ altStops }}" as="alt" hint-placeholder-count="3">
+                  <div onClick="{{ alt.onClick }}" style="{{ alt.cardStyle }}">
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                      <div style="width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0; {{ alt.photo }}"></div>
+                      <div style="flex: 1; min-width: 0;">
+                        <div style="font-size: 14px; font-weight: 600; color: #241A14;">{{ alt.name }}</div>
+                        <div style="font-size: 11px; color: #7B6A5E; margin-top: 2px;">{{ alt.meta }}</div>
+                      </div>
+                      <div style="{{ alt.radio }}"></div>
+                    </div>
+                    <div style="display: flex; gap: 6px; margin-top: 10px;">
+                      <div style="padding: 5px 12px; border-radius: 999px; background: rgba(201,121,85,0.14); font-size: 11px; font-weight: 600; color: #8A5A3C;">{{ alt.reason }}</div>
+                      <div style="padding: 5px 12px; border-radius: 999px; background: rgba(216,191,165,0.3); font-size: 11px; font-weight: 500; color: #4A352A;">{{ alt.detour }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 20px 30px; background: rgba(250,247,240,0.95); backdrop-filter: blur(14px); border-top: 1px solid rgba(36,26,20,0.08); display: flex; gap: 9px;">
+              <div style="flex: 1; padding: 14px; text-align: center; border-radius: 16px; border: 1.5px solid rgba(36,26,20,0.16); font-size: 13px; font-weight: 600; color: #241A14; box-sizing: border-box;">Keep current</div>
+              <div style="flex: 1.4; padding: 14px; text-align: center; border-radius: 16px; background: #241A14; color: #FAF7F0; font-size: 13px; font-weight: 600; box-shadow: 0 6px 16px rgba(36,26,20,0.14);">Replace Stop</div>
+            </div>
+          </div>
+        </x-import>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================================================== -->
+  <!-- SECTION G+ — PROFILE ADDITIONS -->
+  <!-- ================================================== -->
+  <div>
+    <div style="{{ styles.sectionHead }}">G+ — Profile Additions</div>
+    <div style="display: flex; gap: 40px; flex-wrap: wrap; align-items: flex-start;">
+
+      <!-- G4 NOTIFICATION PREFERENCES -->
+      <div data-screen-label="G4 — Notification Preferences" style="{{ styles.frameCol }}">
+        <div style="{{ styles.screenLabel }}">G4 — Notification Preferences (interactive)</div>
+        <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ frameWidth }}" height="{{ frameHeight }}" hint-size="390,844">
+          <div style="position: relative; height: 100%; overflow: hidden; background: #FAF7F0;">
+            <div style="{{ styles.grain }}"></div>
+            <div style="position: absolute; inset: 0; overflow-y: auto;">
+              <div style="padding: 66px 24px 60px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <div style="{{ styles.backBtn }}">‹</div>
+                  <div style="font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 600; color: #241A14;">Notifications</div>
+                </div>
+                <div style="font-size: 13px; color: #7B6A5E; margin-top: 12px;">Calm by default — only what helps you find your next café.</div>
+
+                <div style="background: rgba(255,252,246,0.92); border: 1px solid rgba(36,26,20,0.08); border-radius: 22px; padding: 4px 18px; margin-top: 18px;">
+                  <sc-for list="{{ notifRows }}" as="n" hint-placeholder-count="5">
+                    <div style="display: flex; align-items: center; gap: 13px; padding: 15px 0; border-bottom: 1px solid rgba(36,26,20,0.06);">
+                      <div style="flex: 1;">
+                        <div style="font-size: 14px; font-weight: 600; color: #241A14;">{{ n.label }}</div>
+                        <div style="font-size: 11px; color: #7B6A5E; margin-top: 2px; line-height: 1.45;">{{ n.sub }}</div>
+                      </div>
+                      <div onClick="{{ n.onClick }}" style="{{ n.track }}">
+                        <div style="{{ n.knob }}"></div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+
+                <div style="font-size: 11px; color: #A99C8D; margin-top: 16px; text-align: center;">You can mute everything, anytime. No guilt.</div>
+              </div>
+            </div>
+          </div>
+        </x-import>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    privacy: 'private',
+    altSelected: 0,
+    notif: { 0: true, 1: true, 2: true, 3: false, 4: false },
+  };
+
+  // ---- shared style tokens (mirrors CafeMood Complete App) ----
+  tokens() {
+    const grain = "position: absolute; inset: 0; pointer-events: none; opacity: 0.03; z-index: 1; background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\");";
+    return {
+      grain,
+      sectionHead: "font-size: 14px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #C97955; margin-bottom: 28px; padding-bottom: 14px; border-bottom: 1px solid rgba(250,247,240,0.14);",
+      frameCol: "display: flex; flex-direction: column; align-items: center; gap: 16px;",
+      screenLabel: "font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #B7AB9E;",
+      primaryBtn: "padding: 16px; background: #241A14; color: #FAF7F0; border-radius: 18px; font-size: 15px; font-weight: 600; text-align: center; box-shadow: 0 6px 16px rgba(36,26,20,0.15); cursor: pointer;",
+      backBtn: "width: 40px; height: 40px; border-radius: 50%; background: rgba(36,26,20,0.05); display: flex; align-items: center; justify-content: center; font-size: 20px; color: #241A14; font-weight: 600; flex-shrink: 0;",
+      eyebrow: "font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #7B6A5E;",
+    };
+  }
+
+  stripe(c1, c2, angle) {
+    return `background: repeating-linear-gradient(${angle || 135}deg, ${c1}, ${c1} 10px, ${c2} 10px, ${c2} 20px);`;
+  }
+
+  toggle(on) {
+    return on
+      ? {
+          track: "width: 46px; height: 27px; border-radius: 999px; background: #241A14; padding: 3px; box-sizing: border-box; display: flex; justify-content: flex-end; cursor: pointer; transition: background 0.2s ease;",
+          knob: "width: 21px; height: 21px; border-radius: 50%; background: #FAF7F0; box-shadow: 0 2px 6px rgba(36,26,20,0.25);",
+        }
+      : {
+          track: "width: 46px; height: 27px; border-radius: 999px; background: rgba(36,26,20,0.12); padding: 3px; box-sizing: border-box; display: flex; justify-content: flex-start; cursor: pointer; transition: background 0.2s ease;",
+          knob: "width: 21px; height: 21px; border-radius: 50%; background: #FAF7F0; box-shadow: 0 2px 6px rgba(36,26,20,0.15);",
+        };
+  }
+
+  tabBar(active) {
+    const icons = [
+      { label: 'Map', d: 'M12 21c4-4.5 6-7.5 6-10a6 6 0 1 0-12 0c0 2.5 2 5.5 6 10z M12 11.2a1.4 1.4 0 1 0 0-2.8 1.4 1.4 0 0 0 0 2.8z' },
+      { label: 'Search', d: 'M10.5 17a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13z M15.5 15.5 21 21' },
+      { label: 'Saved', d: 'M12 20s-7-4.6-9-9c-1.2-2.8.6-6 3.8-6 2 0 3.5 1.2 5.2 3.2C13.7 6.2 15.2 5 17.2 5c3.2 0 5 3.2 3.8 6-2 4.4-9 9-9 9z' },
+      { label: 'Routes', d: 'M5 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z M19 9a2 2 0 1 0 0-4 2 2 0 0 0 0 4z M7 17h7a4 4 0 0 0 0-8h-3' },
+      { label: 'Profile', d: 'M12 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z M5 20c1-3.5 3.8-5 7-5s6 1.5 7 5' },
+    ];
+    return icons.map((ic, i) => {
+      const on = i === active;
+      const color = on ? '#241A14' : '#A99C8D';
+      return {
+        label: ic.label, d: ic.d,
+        svgStyle: `stroke: ${color}; stroke-width: ${on ? 2 : 1.7}; fill: none; stroke-linecap: round; stroke-linejoin: round;`,
+        labelStyle: `font-size: 10px; font-weight: ${on ? 700 : 500}; color: ${color};`,
+      };
+    });
+  }
+
+  renderVals() {
+    const priv = this.state.privacy === 'private';
+    const privToggle = this.toggle(!priv);
+    const radio = (on) => on
+      ? 'width: 20px; height: 20px; border-radius: 50%; border: 6px solid #241A14; box-sizing: border-box; flex-shrink: 0;'
+      : 'width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid rgba(36,26,20,0.25); box-sizing: border-box; flex-shrink: 0;';
+    const altCard = (on) => on
+      ? 'background: rgba(255,252,246,0.95); border: 1.5px solid #241A14; border-radius: 20px; padding: 13px 14px; margin-top: 11px; cursor: pointer; box-shadow: 0 8px 22px rgba(36,26,20,0.08);'
+      : 'background: rgba(255,252,246,0.92); border: 1px solid rgba(36,26,20,0.08); border-radius: 20px; padding: 13px 14px; margin-top: 11px; cursor: pointer;';
+
+    const altDefs = [
+      { name: 'Sugarline Studio', meta: 'Dessert café · 0.2 mi off-route', reason: 'More aesthetic', detour: '+3 min', photo: this.stripe('#C97955', '#B4623E') },
+      { name: 'Butter & Bloom', meta: 'Bakery café · own lot', reason: 'Easier parking', detour: '+5 min', photo: this.stripe('#D8BFA5', '#C9AC8C') },
+      { name: 'Quiet Fern', meta: 'Tea & dessert · back garden', reason: 'Quieter', detour: '+2 min', photo: this.stripe('#7D8B64', '#6C7A55') },
+    ];
+    const notifDefs = [
+      { label: 'New cafés near me', sub: 'When a spot worth a detour opens nearby' },
+      { label: 'Saved café reminders', sub: 'Gentle nudges about places on your list' },
+      { label: 'Weekend route ideas', sub: 'One café-hopping route, Fridays only' },
+      { label: 'Friend recommendations', sub: 'When someone shares a café with you' },
+      { label: 'Café vibe updates', sub: 'Crowd and noise shifts at saved cafés' },
+    ];
+
+    return {
+      frameWidth: 390, frameHeight: 844,
+      styles: this.tokens(),
+      tabBarMap: this.tabBar(0),
+
+      // B6 expanded sheet
+      photoA: this.stripe('#C97955', '#B4623E'),
+      photoB: this.stripe('#D8BFA5', '#C9AC8C', 45),
+      photoC: this.stripe('#7D8B64', '#6C7A55'),
+      sheetWhy: [
+        { dot: '#6F8B5E', text: 'Matches your aesthetic and good-latte profile.' },
+        { dot: '#B88A44', text: 'Warm window light before 11 AM — photo friendly.' },
+        { dot: '#C76E4F', text: 'Work seats are limited; better for a short stay.' },
+      ],
+      sheetLoves: ['Latte quality', 'Interior design', 'Friendly staff'],
+      sheetWatch: ['Parking is tight on weekends', 'Crowded after 10 AM'],
+
+      // D4 create collection
+      suggestedNames: ['Cute Date Cafés', 'Work Spots', 'Matcha Places', 'Weekend Finds'],
+      privacyLabel: priv ? 'Private collection' : 'Public collection',
+      privacySub: priv ? 'Only you can see this' : 'Anyone with the link can view',
+      privacyTrack: privToggle.track,
+      privacyKnob: privToggle.knob,
+      togglePrivacy: () => this.setState(s => ({ privacy: s.privacy === 'private' ? 'public' : 'private' })),
+
+      // D5 edit collection
+      coverStripe: this.stripe('#8A5A3C', '#6f4830'),
+      editCafes: [
+        { name: 'Communal Coffee', meta: 'Work 9.0 · South Park', photo: this.stripe('#7D8B64', '#6C7A55') },
+        { name: 'Mostra Coffee', meta: 'Work 6.5 · North Park', photo: this.stripe('#C97955', '#B4623E') },
+        { name: 'Hearth Supply Co.', meta: 'Work 8.2 · University Heights', photo: this.stripe('#D8BFA5', '#C9AC8C') },
+      ],
+
+      // D6 share card
+      shareActions: [
+        { icon: '⧉', label: 'Copy Link' },
+        { icon: '↗', label: 'Share Image' },
+        { icon: '✉', label: 'Send to Friend' },
+      ],
+
+      // E5 replace stop
+      currentStopPhoto: this.stripe('#B88A44', '#a37836'),
+      altStops: altDefs.map((a, i) => ({
+        ...a,
+        cardStyle: altCard(this.state.altSelected === i),
+        radio: radio(this.state.altSelected === i),
+        onClick: () => this.setState({ altSelected: i }),
+      })),
+
+      // G4 notifications
+      notifRows: notifDefs.map((n, i) => {
+        const t = this.toggle(!!this.state.notif[i]);
+        return {
+          ...n,
+          track: t.track,
+          knob: t.knob,
+          onClick: () => this.setState(s => ({ notif: { ...s.notif, [i]: !s.notif[i] } })),
+        };
+      }),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; }
+    ::selection { background: #D8BFA5; }
+  </style>
+</helmet>
+
+<div style="font-family: 'Inter', sans-serif; background: #FAF7F0; color: #241A14; min-height: 100vh; position: relative;">
+
+  <!-- grain overlay -->
+  <div style="position: fixed; inset: 0; pointer-events: none; opacity: 0.035; z-index: 1; background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;);"></div>
+
+  <div style="position: relative; z-index: 2; max-width: 1240px; margin: 0 auto; padding: 64px 40px 120px;">
+
+    <!-- ================= HEADER ================= -->
+    <div style="margin-bottom: 80px;">
+      <div style="font-family: 'Inter'; font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #7B6A5E; margin-bottom: 14px;">Design System</div>
+      <div style="font-family: 'Playfair Display', serif; font-size: 56px; font-weight: 600; line-height: 1.05; color: #241A14;">CafeMood Map</div>
+      <div style="font-size: 18px; color: #4A352A; margin-top: 14px; max-width: 620px; line-height: 1.5;">Ambient Editorial Map — a warm, photo-first visual language for discovering coffee shops by vibe.</div>
+    </div>
+
+    <!-- ================= MOODBOARD ================= -->
+    <div style="margin-bottom: 96px;">
+      <div style="{{ styles.sectionLabel }}">01 — Brand Moodboard</div>
+      <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-top: 24px;">
+        <sc-for list="{{ moodTiles }}" as="tile" hint-placeholder-count="10">
+          <div style="{{ tile.style }}">
+            <div style="font-family: monospace; font-size: 10px; letter-spacing: 0.04em; opacity: 0.55; text-align: center; padding: 0 8px;">{{ tile.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px;">
+        <sc-for list="{{ moodKeywords }}" as="kw" hint-placeholder-count="10">
+          <div style="padding: 9px 18px; border-radius: 999px; background: rgba(255,252,246,0.88); border: 1px solid rgba(36,26,20,0.08); font-size: 13px; font-weight: 500; color: #4A352A;">{{ kw }}</div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- ================= COLOR TOKENS ================= -->
+    <div style="margin-bottom: 96px;">
+      <div style="{{ styles.sectionLabel }}">02 — Color Tokens</div>
+      <sc-for list="{{ colorGroups }}" as="group" hint-placeholder-count="5">
+        <div style="margin-top: 32px;">
+          <div style="font-size: 14px; font-weight: 600; color: #7B6A5E; margin-bottom: 12px;">{{ group.name }}</div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
+            <sc-for list="{{ group.colors }}" as="c" hint-placeholder-count="4">
+              <div>
+                <div style="{{ c.swatchStyle }}"></div>
+                <div style="font-size: 13px; font-weight: 600; margin-top: 8px;">{{ c.name }}</div>
+                <div style="font-size: 12px; color: #7B6A5E; font-family: monospace;">{{ c.value }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- ================= TYPOGRAPHY ================= -->
+    <div style="margin-bottom: 96px;">
+      <div style="{{ styles.sectionLabel }}">03 — Typography</div>
+      <div style="margin-top: 24px; background: rgba(255,252,246,0.88); border: 1px solid rgba(36,26,20,0.08); border-radius: 24px; padding: 8px 32px;">
+        <sc-for list="{{ typeStyles }}" as="t" hint-placeholder-count="8">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 22px 0; border-bottom: 1px solid rgba(36,26,20,0.08);">
+            <div style="{{ t.previewStyle }}">{{ t.sample }}</div>
+            <div style="text-align: right; flex-shrink: 0; margin-left: 24px;">
+              <div style="font-size: 13px; font-weight: 600; color: #241A14;">{{ t.name }}</div>
+              <div style="font-size: 12px; color: #7B6A5E; font-family: monospace;">{{ t.spec }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- ================= SPACING & LAYOUT ================= -->
+    <div style="margin-bottom: 96px;">
+      <div style="{{ styles.sectionLabel }}">04 — Layout &amp; Spacing</div>
+      <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; margin-top: 24px;">
+        <div>
+          <div style="font-size: 13px; font-weight: 600; color: #7B6A5E; margin-bottom: 14px;">8pt Spacing Scale</div>
+          <div style="display: flex; align-items: flex-end; gap: 10px; height: 80px;">
+            <sc-for list="{{ spacingTokens }}" as="s" hint-placeholder-count="9">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                <div style="width: 22px; height: {{ s.px }}px; background: #C97955; border-radius: 4px;"></div>
+                <div style="font-size: 11px; font-family: monospace; color: #7B6A5E;">{{ s.px }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div>
+          <div style="font-size: 13px; font-weight: 600; color: #7B6A5E; margin-bottom: 14px;">Frame &amp; Grid Specs</div>
+          <div style="font-size: 14px; line-height: 2.1; color: #4A352A;">
+            Mobile frame — 390 × 844<br/>
+            Page horizontal padding — 20px<br/>
+            Card internal padding — 16 / 20px<br/>
+            Bottom sheet top radius — 32px<br/>
+            Map screen — full-bleed, safe-area aware
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= RADIUS ================= -->
+    <div style="margin-bottom: 96px;">
+      <div style="{{ styles.sectionLabel }}">05 — Radius Tokens</div>
+      <div style="display: flex; gap: 32px; margin-top: 24px; flex-wrap: wrap;">
+        <sc-for list="{{ radiusTokens }}" as="r" hint-placeholder-count="6">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+            <div style="{{ r.style }}"></div>
+            <div style="font-size: 12px; font-weight: 600;">{{ r.name }}</div>
+            <div style="font-size: 11px; font-family: monospace; color: #7B6A5E;">{{ r.value }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- ================= SHADOW ================= -->
+    <div style="margin-bottom: 96px;">
+      <div style="{{ styles.sectionLabel }}">06 — Shadow Tokens</div>
+      <div style="display: flex; gap: 40px; margin-top: 32px; flex-wrap: wrap;">
+        <sc-for list="{{ shadowTokens }}" as="sh" hint-placeholder-count="3">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
+            <div style="{{ sh.style }}"></div>
+            <div style="text-align: center;">
+              <div style="font-size: 12px; font-weight: 600;">{{ sh.name }}</div>
+              <div style="font-size: 11px; font-family: monospace; color: #7B6A5E;">{{ sh.value }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- ================= TEXTURE ================= -->
+    <div style="margin-bottom: 96px;">
+      <div style="{{ styles.sectionLabel }}">07 — Texture System</div>
+      <div style="margin-top: 24px; display: flex; gap: 24px; align-items: center;">
+        <div style="width: 220px; height: 140px; border-radius: 24px; background: #EFE6D8; position: relative; overflow: hidden; border: 1px solid rgba(36,26,20,0.08);">
+          <div style="position: absolute; inset: 0; opacity: 0.04; background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;);"></div>
+        </div>
+        <div style="font-size: 14px; color: #4A352A; line-height: 1.6; max-width: 420px;">Fractal grain at 2–4% opacity over Cream / Warm Paper surfaces. Applied to backgrounds and select cards — premium and tactile, never dirty.</div>
+      </div>
+    </div>
+
+    <!-- ================= COMPONENTS ================= -->
+    <div>
+      <div style="{{ styles.sectionLabel }}">08 — Components</div>
+
+      <!-- VibeChip -->
+      <div style="{{ styles.compBlock }}">
+        <div style="{{ styles.compTitle }}">VibeChip</div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <sc-for list="{{ vibeChips }}" as="chip" hint-placeholder-count="6">
+            <div onClick="{{ chip.onClick }}" style="{{ chip.style }}">{{ chip.label }}</div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- PhotoMapPin -->
+      <div style="{{ styles.compBlock }}">
+        <div style="{{ styles.compTitle }}">PhotoMapPin</div>
+        <div style="display: flex; gap: 36px; align-items: flex-end;">
+          <sc-for list="{{ mapPins }}" as="pin" hint-placeholder-count="4">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+              <div style="{{ pin.wrapStyle }}">
+                <div style="{{ pin.photoStyle }}"></div>
+                <sc-if value="{{ pin.showBadge }}" hint-placeholder-val="{{ true }}">
+                  <div style="{{ pin.badgeStyle }}">{{ pin.badgeText }}</div>
+                </sc-if>
+                <sc-if value="{{ pin.isCluster }}" hint-placeholder-val="{{ false }}">
+                  <div style="{{ styles.clusterCount }}">{{ pin.clusterCount }}</div>
+                </sc-if>
+              </div>
+              <div style="font-size: 11px; font-weight: 600; color: #7B6A5E;">{{ pin.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- ScoreBadge -->
+      <div style="{{ styles.compBlock }}">
+        <div style="{{ styles.compTitle }}">ScoreBadge</div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <sc-for list="{{ scoreBadges }}" as="sb" hint-placeholder-count="4">
+            <div style="{{ styles.scoreBadge }}">
+              <div style="width: 8px; height: 8px; border-radius: 50%; background: {{ sb.dot }};"></div>
+              <div style="font-size: 13px; font-weight: 500; color: #4A352A;">{{ sb.label }}</div>
+              <div style="font-size: 13px; font-weight: 700; color: #241A14;">{{ sb.score }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- AISummaryCard -->
+      <div style="{{ styles.compBlock }}">
+        <div style="{{ styles.compTitle }}">AISummaryCard</div>
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+          <div style="width: 320px; background: rgba(250,247,240,0.9); border: 1px solid rgba(36,26,20,0.08); border-radius: 20px; padding: 18px 20px; display: flex; gap: 12px;">
+            <div style="width: 26px; height: 26px; border-radius: 50%; background: #D8BFA5; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px;">✦</div>
+            <div style="font-size: 13px; line-height: 1.55; color: #4A352A;">Bright, plant-filled corner spot — great light for photos, quiet before 11am.</div>
+          </div>
+          <div style="width: 320px; background: rgba(250,247,240,0.9); border: 1px solid rgba(36,26,20,0.08); border-radius: 20px; padding: 20px 22px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+              <div style="width: 26px; height: 26px; border-radius: 50%; background: #D8BFA5; display: flex; align-items: center; justify-content: center; font-size: 13px;">✦</div>
+              <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #7B6A5E;">Vibe Summary</div>
+            </div>
+            <div style="font-size: 14px; line-height: 1.6; color: #4A352A;">A sunlit, plant-lined café with communal oak tables — ideal for slow mornings, laptop work, and window-light photos. Gets busy after noon.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CafeImageCard -->
+      <div style="{{ styles.compBlock }}">
+        <div style="{{ styles.compTitle }}">CafeImageCard</div>
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+          <sc-for list="{{ imageCards }}" as="ic" hint-placeholder-count="3">
+            <div style="{{ ic.style }}">
+              <div style="{{ ic.photoStyle }}"></div>
+              <sc-if value="{{ ic.showOverlay }}" hint-placeholder-val="{{ false }}">
+                <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(36,26,20,0) 40%, rgba(36,26,20,0.65) 100%); border-radius: 28px;"></div>
+                <div style="position: absolute; left: 18px; bottom: 16px; color: #FAF7F0; font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600;">{{ ic.title }}</div>
+              </sc-if>
+              <sc-if value="{{ ic.featured }}" hint-placeholder-val="{{ false }}">
+                <div style="position: absolute; top: 14px; left: 14px; background: rgba(250,247,240,0.9); padding: 5px 12px; border-radius: 999px; font-size: 11px; font-weight: 600; color: #8A5A3C;">Featured</div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- RouteStopCard -->
+      <div style="{{ styles.compBlock }}">
+        <div style="{{ styles.compTitle }}">RouteStopCard</div>
+        <div style="display: flex; flex-direction: column; gap: 0; max-width: 420px;">
+          <sc-for list="{{ routeStops }}" as="stop" hint-placeholder-count="3">
+            <div style="display: flex; gap: 16px;">
+              <div style="display: flex; flex-direction: column; align-items: center; width: 20px;">
+                <div style="{{ stop.dotStyle }}"></div>
+                <sc-if value="{{ stop.showLine }}" hint-placeholder-val="{{ true }}">
+                  <div style="width: 2px; flex: 1; background: rgba(36,26,20,0.12); min-height: 40px;"></div>
+                </sc-if>
+              </div>
+              <div style="background: rgba(255,252,246,0.88); border: 1px solid rgba(36,26,20,0.08); border-radius: 18px; padding: 14px 16px; margin-bottom: 14px; flex: 1; display: flex; align-items: center; gap: 12px;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #D8BFA5, #8A5A3C);"></div>
+                <div>
+                  <div style="font-size: 14px; font-weight: 600;">{{ stop.name }}</div>
+                  <div style="font-size: 12px; color: #7B6A5E;">{{ stop.tag }}</div>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div style="{{ styles.compBlock }}">
+        <div style="{{ styles.compTitle }}">Buttons</div>
+        <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+          <div style="padding: 15px 28px; background: #241A14; color: #FAF7F0; border-radius: 18px; font-size: 14px; font-weight: 600; box-shadow: 0 6px 16px rgba(36,26,20,0.10);">Primary Button</div>
+          <div style="padding: 15px 28px; background: #4A352A; color: #FAF7F0; border-radius: 18px; font-size: 14px; font-weight: 600; opacity: 0.85; transform: scale(0.98);">Pressed</div>
+          <div style="padding: 15px 28px; background: #E2D9CB; color: #A69787; border-radius: 18px; font-size: 14px; font-weight: 600;">Disabled</div>
+          <div style="padding: 14px 27px; background: transparent; color: #241A14; border: 1.5px solid rgba(36,26,20,0.18); border-radius: 18px; font-size: 14px; font-weight: 600;">Secondary Button</div>
+          <div style="padding: 14px 27px; background: rgba(36,26,20,0.04); color: #241A14; border: 1.5px solid rgba(36,26,20,0.18); border-radius: 18px; font-size: 14px; font-weight: 600; opacity: 0.85; transform: scale(0.98);">Pressed</div>
+          <div style="padding: 14px 27px; background: transparent; color: #C9BFB3; border: 1.5px solid rgba(36,26,20,0.08); border-radius: 18px; font-size: 14px; font-weight: 600;">Disabled</div>
+          <div onClick="{{ toggleSave }}" style="{{ styles.saveButton }}">
+            <span>{{ saveIcon }}</span>{{ saveLabel }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Sheet -->
+      <div style="{{ styles.compBlock }}">
+        <div style="{{ styles.compTitle }}">CafeBottomSheet</div>
+        <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+          <sc-for list="{{ sheetStates }}" as="st" hint-placeholder-count="3">
+            <div onClick="{{ st.onClick }}" style="{{ st.tabStyle }}">{{ st.label }}</div>
+          </sc-for>
+        </div>
+        <div style="width: 390px; max-width: 100%; background: #FAF7F0; border: 1px solid rgba(36,26,20,0.08); border-radius: 32px 32px 0 0; box-shadow: 0 -16px 40px rgba(36,26,20,0.10); padding: 14px 24px 28px; overflow: hidden; transition: height 0.25s ease; height: {{ sheetHeight }}px;">
+          <div style="width: 36px; height: 4px; background: rgba(36,26,20,0.15); border-radius: 999px; margin: 0 auto 16px;"></div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <div style="font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 600;">Marigold &amp; Oak</div>
+              <div style="font-size: 13px; color: #7B6A5E; margin-top: 4px;">Fillmore District · 0.4 mi</div>
+            </div>
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #D8BFA5, #8A5A3C); flex-shrink: 0;"></div>
+          </div>
+          <sc-if value="{{ sheetExpanded }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;">
+              <div style="padding: 6px 14px; border-radius: 999px; background: rgba(216,191,165,0.4); font-size: 12px; font-weight: 500;">Aesthetic</div>
+              <div style="padding: 6px 14px; border-radius: 999px; background: rgba(216,191,165,0.4); font-size: 12px; font-weight: 500;">Quiet</div>
+              <div style="padding: 6px 14px; border-radius: 999px; background: rgba(216,191,165,0.4); font-size: 12px; font-weight: 500;">Work</div>
+            </div>
+            <div style="font-size: 14px; line-height: 1.6; color: #4A352A; margin-top: 16px;">Sunlit corner café with communal oak tables and trailing greenery — a favorite for slow mornings and quiet work.</div>
+          </sc-if>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    selectedChips: { 0: true, 3: true },
+    saved: false,
+    sheetState: 'half'
+  };
+
+  toggleChip(i) {
+    this.setState(s => ({ selectedChips: { ...s.selectedChips, [i]: !s.selectedChips[i] } }));
+  }
+
+  renderVals() {
+    const sectionLabel = "font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #C97955;";
+    const compBlock = "margin-top: 40px; padding-top: 32px; border-top: 1px solid rgba(36,26,20,0.08);";
+    const compTitle = "font-size: 15px; font-weight: 700; margin-bottom: 18px; color: #241A14;";
+
+    const moodTileStyle = (bg) => `height: 90px; border-radius: 16px; background: ${bg}; display: flex; align-items: center; justify-content: center; color: rgba(36,26,20,0.5); border: 1px solid rgba(36,26,20,0.06);`;
+    const moodTiles = [
+      { label: 'photo — latte art', style: moodTileStyle('repeating-linear-gradient(45deg, #EFE6D8, #EFE6D8 8px, #E4D6C2 8px, #E4D6C2 16px)') },
+      { label: 'photo — window light', style: moodTileStyle('repeating-linear-gradient(45deg, #F3EDE2, #F3EDE2 8px, #E9DCC8 8px, #E9DCC8 16px)') },
+      { label: 'photo — pastry case', style: moodTileStyle('repeating-linear-gradient(135deg, #D8BFA5, #D8BFA5 8px, #C9AC8C 8px, #C9AC8C 16px)') },
+      { label: 'photo — patio', style: moodTileStyle('repeating-linear-gradient(135deg, #EFE6D8, #EFE6D8 8px, #E4D6C2 8px, #E4D6C2 16px)') },
+      { label: 'photo — hands + cup', style: moodTileStyle('repeating-linear-gradient(45deg, #F3EDE2, #F3EDE2 8px, #E9DCC8 8px, #E9DCC8 16px)') },
+      { label: 'photo — plants', style: moodTileStyle('repeating-linear-gradient(45deg, #7D8B64, #7D8B64 8px, #6E7C56 8px, #6E7C56 16px)') },
+    ];
+
+    const moodKeywords = ['Warm','Editorial','Map-first','Aesthetic','Local discovery','Cozy','Premium','Human-made','Tactile','Calm'];
+
+    const swatch = (val) => `width: 100%; height: 64px; border-radius: 14px; border: 1px solid rgba(36,26,20,0.08); background: ${val};`;
+    const colorGroups = [
+      { name: 'Background', colors: [
+        { name: 'Cream 50', value: '#FAF7F0', swatchStyle: swatch('#FAF7F0') },
+        { name: 'Cream 100', value: '#F3EDE2', swatchStyle: swatch('#F3EDE2') },
+        { name: 'Warm Paper', value: '#EFE6D8', swatchStyle: swatch('#EFE6D8') },
+      ]},
+      { name: 'Text', colors: [
+        { name: 'Espresso 900', value: '#241A14', swatchStyle: swatch('#241A14') },
+        { name: 'Espresso 700', value: '#4A352A', swatchStyle: swatch('#4A352A') },
+        { name: 'Muted Text', value: '#7B6A5E', swatchStyle: swatch('#7B6A5E') },
+      ]},
+      { name: 'Brand', colors: [
+        { name: 'Roasted Brown', value: '#8A5A3C', swatchStyle: swatch('#8A5A3C') },
+        { name: 'Latte Beige', value: '#D8BFA5', swatchStyle: swatch('#D8BFA5') },
+        { name: 'Olive Matcha', value: '#7D8B64', swatchStyle: swatch('#7D8B64') },
+        { name: 'Terracotta', value: '#C97955', swatchStyle: swatch('#C97955') },
+      ]},
+      { name: 'Surface', colors: [
+        { name: 'Card Cream', value: 'rgba(255,252,246,0.88)', swatchStyle: swatch('rgba(255,252,246,0.88)') + 'background-color:#EFE6D8;' },
+        { name: 'Glass Cream', value: 'rgba(250,247,240,0.72)', swatchStyle: swatch('rgba(250,247,240,0.72)') + 'background-color:#EFE6D8;' },
+        { name: 'Border Soft', value: 'rgba(36,26,20,0.08)', swatchStyle: swatch('rgba(36,26,20,0.08)') + 'background-color:#EFE6D8;' },
+      ]},
+      { name: 'Score', colors: [
+        { name: 'Great', value: '#6F8B5E', swatchStyle: swatch('#6F8B5E') },
+        { name: 'Good', value: '#B88A44', swatchStyle: swatch('#B88A44') },
+        { name: 'Crowded', value: '#C76E4F', swatchStyle: swatch('#C76E4F') },
+      ]},
+    ];
+
+    const typeStyles = [
+      { name: 'Display / Hero', spec: '36px · serif · medium', sample: 'Find your vibe', previewStyle: "font-family:'Playfair Display',serif; font-size:36px; font-weight:600;" },
+      { name: 'Title / Café Name', spec: '28px · serif · medium', sample: 'Marigold & Oak', previewStyle: "font-family:'Playfair Display',serif; font-size:28px; font-weight:600;" },
+      { name: 'Section Title', spec: '20px · sans · semibold', sample: 'Nearby cafés', previewStyle: "font-family:'Inter',sans-serif; font-size:20px; font-weight:600;" },
+      { name: 'Body', spec: '16px · sans · regular', sample: 'Sunlit corner spot, quiet before 11am.', previewStyle: "font-family:'Inter',sans-serif; font-size:16px; font-weight:400;" },
+      { name: 'Body Small', spec: '14px · sans · regular', sample: '0.4 mi · Fillmore District', previewStyle: "font-family:'Inter',sans-serif; font-size:14px; font-weight:400;" },
+      { name: 'Caption', spec: '12px · sans · medium', sample: 'OPEN UNTIL 6PM', previewStyle: "font-family:'Inter',sans-serif; font-size:12px; font-weight:500; letter-spacing:0.05em;" },
+      { name: 'Score Number', spec: '28px · sans · semibold', sample: '9.2', previewStyle: "font-family:'Inter',sans-serif; font-size:28px; font-weight:600;" },
+      { name: 'Chip Label', spec: '13px · sans · medium', sample: 'Aesthetic', previewStyle: "font-family:'Inter',sans-serif; font-size:13px; font-weight:500;" },
+    ];
+
+    const spacingTokens = [4,8,12,16,20,24,32,40,56].map(px => ({ px }));
+
+    const radiusStyle = (r, extra) => `width: 64px; height: 64px; background: #D8BFA5; border: 1px solid rgba(36,26,20,0.1); ${r}${extra||''}`;
+    const radiusTokens = [
+      { name: 'Chip', value: '999px', style: radiusStyle('border-radius: 999px;') },
+      { name: 'Button', value: '18px', style: radiusStyle('border-radius: 18px;') },
+      { name: 'Card', value: '24px', style: radiusStyle('border-radius: 24px;') },
+      { name: 'Image Card', value: '28px', style: radiusStyle('border-radius: 28px;') },
+      { name: 'Bottom Sheet', value: '32px top', style: radiusStyle('border-radius: 32px 32px 0 0;') },
+      { name: 'Photo Pin', value: 'circle', style: radiusStyle('border-radius: 50%;') },
+    ];
+
+    const shadowTokens = [
+      { name: 'Card Shadow', value: '0 16 40 / 0.14', style: 'width: 140px; height: 90px; background: #FAF7F0; border-radius: 20px; box-shadow: 0 16px 40px rgba(36,26,20,0.14);' },
+      { name: 'Pin Shadow', value: '0 8 22 / 0.20', style: 'width: 64px; height: 64px; background: #FAF7F0; border-radius: 50%; box-shadow: 0 8px 22px rgba(36,26,20,0.20);' },
+      { name: 'Button Shadow', value: '0 6 16 / 0.10', style: 'width: 140px; height: 50px; background: #241A14; border-radius: 18px; box-shadow: 0 6px 16px rgba(36,26,20,0.10);' },
+    ];
+
+    const chipLabels = ['Work','Aesthetic','Date','Quiet','Outdoor'];
+    const vibeChips = chipLabels.map((label, i) => {
+      const selected = !!this.state.selectedChips[i];
+      const style = selected
+        ? "padding: 10px 18px; border-radius: 999px; background: #241A14; color: #FAF7F0; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid #241A14;"
+        : "padding: 10px 18px; border-radius: 999px; background: rgba(255,252,246,0.88); color: #4A352A; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid rgba(36,26,20,0.1);";
+      return { label, onClick: () => this.toggleChip(i), style };
+    });
+    vibeChips.push({
+      label: 'Open Now',
+      onClick: () => {},
+      style: "padding: 10px 18px; border-radius: 999px; background: rgba(36,26,20,0.04); color: #B7AB9E; font-size: 13px; font-weight: 500; cursor: not-allowed; border: 1px solid rgba(36,26,20,0.06);"
+    });
+
+    const pinPhoto = (bg) => `width: 56px; height: 56px; border-radius: 50%; background: ${bg}; border: 3px solid #FAF7F0; box-shadow: 0 8px 22px rgba(36,26,20,0.20);`;
+    const mapPins = [
+      { label: 'Default', wrapStyle: 'position: relative;', photoStyle: pinPhoto('linear-gradient(135deg,#D8BFA5,#8A5A3C)'), showBadge: false, isCluster: false },
+      { label: 'Selected', wrapStyle: 'position: relative; transform: scale(1.15);', photoStyle: pinPhoto('linear-gradient(135deg,#C97955,#8A5A3C)') + 'border-color:#241A14;', showBadge: false, isCluster: false },
+      { label: 'With Score', wrapStyle: 'position: relative;', photoStyle: pinPhoto('linear-gradient(135deg,#7D8B64,#5f6b4c)'), showBadge: true, badgeText: '9.2', badgeStyle: 'position:absolute; bottom:-6px; right:-6px; background:#6F8B5E; color:#FAF7F0; font-size:10px; font-weight:700; padding:3px 6px; border-radius:8px; border:2px solid #FAF7F0;', isCluster: false },
+      { label: 'Cluster', wrapStyle: 'position: relative;', photoStyle: pinPhoto('linear-gradient(135deg,#D8BFA5,#8A5A3C)') + 'opacity:0.9;', showBadge: false, isCluster: true, clusterCount: '+6' },
+    ];
+
+    const scoreBadges = [
+      { label: 'Aesthetic', score: '9.2', dot: '#6F8B5E' },
+      { label: 'Work', score: '8.4', dot: '#6F8B5E' },
+      { label: 'Coffee', score: '7.1', dot: '#B88A44' },
+      { label: 'Quiet', score: '5.8', dot: '#C76E4F' },
+    ];
+
+    const imgCardBase = 'position: relative; width: 220px; height: 260px; border-radius: 28px; overflow: hidden; border: 1px solid rgba(36,26,20,0.08);';
+    const imageCards = [
+      { style: imgCardBase, photoStyle: 'position:absolute; inset:0; background: repeating-linear-gradient(45deg, #EFE6D8, #EFE6D8 10px, #E4D6C2 10px, #E4D6C2 20px);', showOverlay: false, featured: false },
+      { style: imgCardBase + 'box-shadow: 0 16px 40px rgba(36,26,20,0.14);', photoStyle: 'position:absolute; inset:0; background: repeating-linear-gradient(135deg, #D8BFA5, #D8BFA5 10px, #C9AC8C 10px, #C9AC8C 20px);', showOverlay: false, featured: true },
+      { style: imgCardBase, photoStyle: 'position:absolute; inset:0; background: repeating-linear-gradient(45deg, #7D8B64, #7D8B64 10px, #6E7C56 10px, #6E7C56 20px);', showOverlay: true, featured: false, title: 'Marigold & Oak' },
+    ];
+
+    const routeStops = [
+      { name: 'Marigold & Oak', tag: 'Start · 8:30am', dotStyle: 'width:14px;height:14px;border-radius:50%;background:#241A14;margin-top:4px;', showLine: true },
+      { name: 'Fernway Coffee', tag: 'Stop 2 · 10:00am', dotStyle: 'width:14px;height:14px;border-radius:50%;background:#C97955;margin-top:4px;', showLine: true },
+      { name: 'Terrace & Thistle', tag: 'End · 11:30am', dotStyle: 'width:14px;height:14px;border-radius:50%;background:#6F8B5E;margin-top:4px;', showLine: false },
+    ];
+
+    const sheetTab = (active) => `padding: 8px 16px; border-radius: 999px; font-size: 12px; font-weight: 600; cursor: pointer; ${active ? 'background:#241A14;color:#FAF7F0;' : 'background:rgba(36,26,20,0.06);color:#7B6A5E;'}`;
+    const sheetStates = ['collapsed','half','expanded'].map(s => ({
+      label: s.charAt(0).toUpperCase() + s.slice(1),
+      onClick: () => this.setState({ sheetState: s }),
+      tabStyle: sheetTab(this.state.sheetState === s)
+    }));
+    const sheetHeight = { collapsed: 110, half: 220, expanded: 360 }[this.state.sheetState];
+
+    return {
+      styles: {
+        sectionLabel, compBlock, compTitle,
+        clusterCount: 'position:absolute; bottom:-6px; right:-6px; background:#241A14; color:#FAF7F0; font-size:10px; font-weight:700; padding:3px 7px; border-radius:8px; border:2px solid #FAF7F0;',
+        scoreBadge: 'display:flex; align-items:center; gap:8px; padding:10px 16px; border-radius:14px; background: rgba(255,252,246,0.88); border:1px solid rgba(36,26,20,0.08);',
+        saveButton: `padding: 15px 24px; border-radius: 18px; font-size: 14px; font-weight: 600; cursor: pointer; display:flex; align-items:center; gap:8px; ${this.state.saved ? 'background:#C97955; color:#FAF7F0;' : 'background:transparent; color:#241A14; border:1.5px solid rgba(36,26,20,0.18);'}`,
+      },
+      moodTiles, moodKeywords, colorGroups, typeStyles, spacingTokens, radiusTokens, shadowTokens,
+      vibeChips, mapPins, scoreBadges, imageCards, routeStops,
+      sheetStates, sheetHeight, sheetExpanded: this.state.sheetState === 'expanded',
+      saved: this.state.saved, saveIcon: this.state.saved ? '♥ ' : '♡ ', saveLabel: this.state.saved ? 'Saved' : 'Save',
+      toggleSave: () => this.setState(s => ({ saved: !s.saved })),
+    };
+  }
+}
+
+</script>
+</body>
+</html>
