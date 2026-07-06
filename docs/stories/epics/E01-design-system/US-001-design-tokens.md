@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -37,8 +37,13 @@ App exposes the Ambient Editorial Map token set (colors, type scale, spacing, ra
 ## Design Notes
 
 - UI surfaces: CafeMood Design System (token sheet)
-- Commands / Queries / API / Tables: to be defined when the story is selected
-  and the data model exists.
+- Commands / Queries / API / Tables: none for this foundation story.
+- Implemented in `src/constants/theme.ts` with Ambient Editorial Map color,
+  typography, spacing, radius, shadow, and map-style tokens.
+- Font pairing is loaded through `expo-font` in `src/app/_layout.tsx` using
+  Inter for UI text and Playfair Display for editorial display text.
+- `src/app/index.tsx` now acts as a small token preview and uses exported theme
+  tokens instead of one-off visual values.
 
 ## Validation
 
@@ -55,8 +60,20 @@ When updating durable proof status, use numeric booleans:
 
 ## Harness Delta
 
-None yet.
+- Durable story matrix seeded from all 28 planned story packets.
+- `US-001` marked `in_progress` before implementation and verified through
+  `scripts/bin/harness-cli story verify US-001`.
 
 ## Evidence
 
-None yet - story is planned, not selected for implementation.
+- `npm run lint` passed.
+- `npx tsc --noEmit` passed.
+- `scripts/bin/harness-cli story verify US-001` passed.
+- Playwright web smoke at `http://localhost:8082` passed: expected token
+  preview text rendered, no framework overlay, no console errors, no page
+  errors.
+- iPhone 15 Pro simulator smoke via Expo Go on iOS 17.2 passed: app opened from
+  Metro, rendered the token preview, and fit the native screen without content
+  overlap. Screenshot captured at `/tmp/cafemood-ios-simulator-us001.png`.
+- `rg` scan found hard-coded colors, rgba values, shadows, and font sizes only
+  inside `src/constants/theme.ts`, the intended token source.
