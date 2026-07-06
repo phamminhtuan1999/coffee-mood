@@ -9,6 +9,10 @@ dist/
 web-build/
 expo-env.d.ts
 
+# generated native folders (Continuous Native Generation)
+/ios
+/android
+
 # Native
 .kotlin/
 *.orig.*
@@ -18,26 +22,45 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
+# EAS
+credentials.json
+
 # Metro
 .metro-health-check*
+
+# testing
+coverage/
 
 # debug
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+*.log
+
+# env files — keep .env.example committed
+.env
+.env.*
+!.env.example
+
+# typescript
+*.tsbuildinfo
+
+# editors & tools
+.idea/
+.claude/settings.local.json
 
 # macOS
 .DS_Store
 *.pem
 
-# local env files
-.env*.local
+# Harness durable layer
+harness.db
+harness.db-wal
+harness.db-shm
+scripts/bin/harness-cli
+scripts/bin/harness-cli.exe
 
-# typescript
-*.tsbuildinfo
-
-example
-
-# generated native folders
-/ios
-/android
+# Design handoff: keep .dc.html sources; exclude the archive and
+# unreferenced pasted uploads (7.6MB PNG not used by any design file)
+CoffeeMood-handoff.zip
+docs/design/project/uploads/
