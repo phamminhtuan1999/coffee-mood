@@ -26,6 +26,15 @@ import {
   loadAuthSession,
   saveAuthSession,
 } from "@/utils/auth-session";
+import {
+  CafeType,
+  DistancePreference,
+  loadTasteProfile,
+  PricePreference,
+  saveTasteProfile,
+  TastePriority,
+  TasteProfile,
+} from "@/utils/taste-profile";
 
 type FirstRunStep =
   | "splash"
@@ -35,7 +44,8 @@ type FirstRunStep =
   | "email-auth"
   | "location-primer"
   | "manual-location"
-  | "taste-handoff";
+  | "taste-onboarding"
+  | "main-map";
 
 type LocationSelection =
   | {
@@ -79,12 +89,42 @@ const popularNeighborhoods = [
   "Convoy",
 ] as const;
 
+const cafeTypeOptions: CafeType[] = [
+  "Work / Study",
+  "Aesthetic",
+  "Date Spot",
+  "Quiet",
+  "Outdoor",
+  "Specialty Coffee",
+];
+
+const priorityOptions: TastePriority[] = [
+  "Wi-Fi",
+  "Outlets",
+  "Parking",
+  "Low noise",
+  "Good latte",
+  "Photo spots",
+];
+
+const distanceOptions: DistancePreference[] = [
+  "5 min",
+  "10 min",
+  "20 min",
+  "Anywhere",
+];
+
+const priceOptions: PricePreference[] = ["$", "$$", "$$$"];
+
 export default function Index() {
   const [authSession, setAuthSession] = useState<AuthSession | null>(() =>
     loadAuthSession(),
   );
+  const [tasteProfile, setTasteProfile] = useState<TasteProfile | null>(() =>
+    loadTasteProfile(),
+  );
   const [step, setStep] = useState<FirstRunStep>(() =>
-    authSession ? "location-primer" : "splash",
+    tasteProfile ? "main-map" : authSession ? "location-primer" : "splash",
   );
   const [slideIndex, setSlideIndex] = useState(0);
   const [locationSelection, setLocationSelection] =
@@ -96,7 +136,12 @@ export default function Index() {
   const continueToTaste = (selection: LocationSelection) => {
     setLocationSelection(selection);
     setLocationNotice(null);
-    setStep("taste-handoff");
+    setStep("taste-onboarding");
+  };
+  const completeTasteProfile = (profile: TasteProfile) => {
+    saveTasteProfile(profile);
+    setTasteProfile(profile);
+    setStep("main-map");
   };
   const requestCurrentLocation = async () => {
     setIsRequestingLocation(true);
@@ -181,11 +226,31 @@ export default function Index() {
     );
   }
 
-  if (step === "taste-handoff") {
+  if (step === "taste-onboarding") {
     return (
-      <TasteOnboardingHandoff
+      <TasteOnboardingScreen
+        initialProfile={tasteProfile}
+        onSkip={() =>
+          completeTasteProfile({
+            cafeTypes: [],
+            priorities: [],
+            distance: "10 min",
+            price: "$$",
+            skipped: true,
+            updatedAt: new Date().toISOString(),
+          })
+        }
+        onComplete={completeTasteProfile}
+      />
+    );
+  }
+
+  if (step === "main-map") {
+    return (
+      <MainMapHandoff
+        profile={tasteProfile}
         selection={locationSelection}
-        onBack={() => setStep("manual-location")}
+        onEditTaste={() => setStep("taste-onboarding")}
       />
     );
   }
@@ -744,46 +809,233 @@ function ManualLocationScreen({
   );
 }
 
-type TasteOnboardingHandoffProps = {
-  selection: LocationSelection | null;
-  onBack: () => void;
+type TasteOnboardingScreenProps = {
+  initialProfile: TasteProfile | null;
+  onSkip: () => void;
+  onComplete: (profile: TasteProfile) => void;
 };
 
-function TasteOnboardingHandoff({
+function TasteOnboardingScreen({
+  initialProfile,
+  onSkip,
+  onComplete,
+}: TasteOnboardingScreenProps) {
+  const [cafeTypes, setCafeTypes] = useState<CafeType[]>(
+    initialProfile?.cafeTypes.length ? initialProfile.cafeTypes : ["Work / Study"],
+  );
+  const [priorities, setPriorities] = useState<TastePriority[]>(
+    initialProfile?.priorities.length ? initialProfile.priorities : ["Wi-Fi", "Good latte"],
+  );
+  const [distance, setDistance] = useState<DistancePreference>(
+    initialProfile?.distance ?? "10 min",
+  );
+  const [price, setPrice] = useState<PricePreference>(initialProfile?.price ?? "$$");
+
+  const selectedCount =
+    cafeTypes.length + priorities.length + (distance ? 1 : 0) + (price ? 1 : 0);
+
+  const toggleCafeType = (value: CafeType) =>
+    setCafeTypes((current) => toggleSelection(current, value));
+  const togglePriority = (value: TastePriority) =>
+    setPriorities((current) => toggleSelection(current, value));
+
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.colors.background.cream50 }}>
+      <WarmMapTexture />
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: theme.spacing.lg,
+          paddingTop: 76,
+          paddingBottom: 150,
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.md }}>
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                ...theme.typography.caption,
+                fontFamily: theme.fonts.family.sansBold,
+                color: theme.colors.brand.terracotta,
+                textTransform: "uppercase",
+              }}
+            >
+              Your taste
+            </Text>
+            <Text
+              style={{
+                ...theme.typography.title,
+                marginTop: theme.spacing.xs,
+                color: theme.colors.text.espresso900,
+              }}
+            >
+              Tell us how you cafe.
+            </Text>
+          </View>
+          <Pressable
+            accessibilityRole="button"
+            onPress={onSkip}
+            style={({ pressed }) => ({
+              minHeight: 42,
+              justifyContent: "center",
+              opacity: pressed ? 0.72 : 1,
+            })}
+          >
+            <Text
+              style={{
+                ...theme.typography.caption,
+                fontFamily: theme.fonts.family.sansBold,
+                color: theme.colors.text.muted,
+              }}
+            >
+              Skip
+            </Text>
+          </Pressable>
+        </View>
+        <TasteGroup title="What kind of cafe do you usually look for?">
+          {cafeTypeOptions.map((option) => (
+            <TasteChip
+              key={option}
+              label={option}
+              selected={cafeTypes.includes(option)}
+              onPress={() => toggleCafeType(option)}
+            />
+          ))}
+        </TasteGroup>
+        <TasteGroup title="What matters most?">
+          {priorityOptions.map((option) => (
+            <TasteChip
+              key={option}
+              label={option}
+              selected={priorities.includes(option)}
+              onPress={() => togglePriority(option)}
+            />
+          ))}
+        </TasteGroup>
+        <TasteGroup title="How far should we search?">
+          {distanceOptions.map((option) => (
+            <TasteChip
+              key={option}
+              label={option}
+              selected={distance === option}
+              onPress={() => setDistance(option)}
+            />
+          ))}
+        </TasteGroup>
+        <TasteGroup title="Preferred price?">
+          {priceOptions.map((option) => (
+            <TasteChip
+              key={option}
+              label={option}
+              selected={price === option}
+              onPress={() => setPrice(option)}
+            />
+          ))}
+        </TasteGroup>
+      </ScrollView>
+      <View
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          paddingHorizontal: theme.spacing.lg,
+          paddingTop: theme.spacing.lg,
+          paddingBottom: 34,
+          backgroundColor: theme.colors.background.cream50,
+        }}
+      >
+        <Text
+          style={{
+            ...theme.typography.caption,
+            marginBottom: theme.spacing.xs,
+            color: theme.colors.text.muted,
+            textAlign: "center",
+          }}
+        >
+          {selectedCount} taste signals selected
+        </Text>
+        <ActionButton
+          label="Build My Cafe Map"
+          onPress={() =>
+            onComplete({
+              cafeTypes,
+              priorities,
+              distance,
+              price,
+              skipped: false,
+              updatedAt: new Date().toISOString(),
+            })
+          }
+        />
+      </View>
+    </View>
+  );
+}
+
+type MainMapHandoffProps = {
+  profile: TasteProfile | null;
+  selection: LocationSelection | null;
+  onEditTaste: () => void;
+};
+
+function MainMapHandoff({
+  profile,
   selection,
-  onBack,
-}: TasteOnboardingHandoffProps) {
+  onEditTaste,
+}: MainMapHandoffProps) {
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
       style={{ backgroundColor: theme.colors.background.cream50 }}
       contentContainerStyle={{
         minHeight: 844,
-        padding: theme.spacing.screen,
-        paddingTop: 96,
+        paddingHorizontal: theme.spacing.screen,
+        paddingTop: 72,
+        paddingBottom: theme.spacing.xxl,
       }}
     >
       <WarmMapTexture />
-      <BrandMark size={56} />
+      <View
+        style={{
+          height: 340,
+          overflow: "hidden",
+          borderRadius: theme.radius.imageCard,
+          borderCurve: "continuous",
+          backgroundColor: theme.colors.background.warmPaper,
+        }}
+      >
+        <MapPreviewSurface>
+          <View style={{ position: "absolute", top: 72, left: 60 }}>
+            <PhotoMapPin label="Taste match cafe" score="9.1" selected tone="terracotta" />
+          </View>
+          <View style={{ position: "absolute", top: 156, right: 78 }}>
+            <PhotoMapPin label="Quiet cafe" score="8.9" tone="latte" />
+          </View>
+          <View style={{ position: "absolute", bottom: 58, left: 110 }}>
+            <PhotoMapPin label="Outdoor cafe" tone="olive" />
+          </View>
+        </MapPreviewSurface>
+      </View>
       <Text
         style={{
           ...theme.typography.title,
-          marginTop: theme.spacing.lg,
+          marginTop: theme.spacing.xl,
           color: theme.colors.text.espresso900,
         }}
       >
-        Taste onboarding is next
+        Your cafe map is ready
       </Text>
       <Text
         style={{
-          ...theme.typography.body,
+          ...theme.typography.bodySmall,
           marginTop: theme.spacing.sm,
           color: theme.colors.text.muted,
         }}
       >
-        {selection?.kind === "current"
-          ? "Location access is ready. US-007 owns the taste profile questions before the main map."
-          : "Your manual area is saved for this flow. US-007 owns the taste profile questions before the main map."}
+        We will tune discovery around your taste profile and selected area. The
+        full main map arrives in US-008.
       </Text>
       <View
         style={{
@@ -803,7 +1055,7 @@ function TasteOnboardingHandoff({
             textTransform: "uppercase",
           }}
         >
-          Location path
+          Taste profile
         </Text>
         <Text
           style={{
@@ -812,9 +1064,18 @@ function TasteOnboardingHandoff({
             color: theme.colors.text.espresso900,
           }}
         >
-          {selection?.label ?? "Manual location"}
+          {profile?.skipped ? "Skipped for now" : tasteProfileSummary(profile)}
         </Text>
-        {selection?.kind === "manual" ? (
+        <Text
+          style={{
+            ...theme.typography.caption,
+            marginTop: theme.spacing.xs,
+            color: theme.colors.text.muted,
+          }}
+        >
+          {selection?.label ?? "Location can be set later"}
+        </Text>
+        {profile && !profile.skipped ? (
           <Text
             style={{
               ...theme.typography.caption,
@@ -822,14 +1083,107 @@ function TasteOnboardingHandoff({
               color: theme.colors.text.muted,
             }}
           >
-            {selection.meta}
+            {profile.distance} radius · {profile.price}
           </Text>
         ) : null}
       </View>
       <View style={{ flex: 1, minHeight: theme.spacing.xxxl }} />
-      <ActionButton label="Change Location" variant="secondary" onPress={onBack} />
+      <ActionButton label="Edit Taste" variant="secondary" onPress={onEditTaste} />
     </ScrollView>
   );
+}
+
+type TasteGroupProps = {
+  title: string;
+  children: ReactNode;
+};
+
+function TasteGroup({ title, children }: TasteGroupProps) {
+  return (
+    <View style={{ marginTop: 30 }}>
+      <Text
+        style={{
+          ...theme.typography.bodySmall,
+          fontFamily: theme.fonts.family.sansSemibold,
+          color: theme.colors.text.espresso900,
+        }}
+      >
+        {title}
+      </Text>
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          gap: theme.spacing.xs,
+          marginTop: theme.spacing.sm,
+        }}
+      >
+        {children}
+      </View>
+    </View>
+  );
+}
+
+type TasteChipProps = {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+};
+
+function TasteChip({ label, selected, onPress }: TasteChipProps) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      onPress={onPress}
+      style={({ pressed }) => ({
+        minHeight: 42,
+        justifyContent: "center",
+        paddingHorizontal: theme.spacing.md,
+        paddingVertical: theme.spacing.xs,
+        borderRadius: theme.radius.chip,
+        borderWidth: 1,
+        borderColor: selected
+          ? theme.colors.text.espresso900
+          : theme.colors.surface.borderMedium,
+        backgroundColor: selected
+          ? theme.colors.text.espresso900
+          : pressed
+            ? theme.colors.surface.pressed
+            : theme.colors.surface.cardCream,
+      })}
+    >
+      <Text
+        style={{
+          ...theme.typography.chipLabel,
+          color: selected
+            ? theme.colors.background.cream50
+            : theme.colors.text.espresso700,
+        }}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+function toggleSelection<T>(current: T[], value: T): T[] {
+  if (current.includes(value)) {
+    return current.filter((item) => item !== value);
+  }
+
+  return [...current, value];
+}
+
+function tasteProfileSummary(profile: TasteProfile | null) {
+  if (!profile || profile.skipped) {
+    return "Open to anything";
+  }
+
+  const firstType = profile.cafeTypes[0] ?? "Cafe";
+  const firstPriority = profile.priorities[0] ?? "Good latte";
+
+  return `${firstType} · ${firstPriority}`;
 }
 
 function LocationMapOrb() {
