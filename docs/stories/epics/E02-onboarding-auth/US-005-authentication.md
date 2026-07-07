@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -21,7 +21,9 @@ Users can sign in with Apple/Google/email or continue as guest; guest mode never
 - Auth screen: Continue with Apple / Google / Email / as Guest - guest visibly equal.
 - Email screen: email+password, sign-in/up toggle, forgot password, designed error state.
 - Session persists across launches; sign-out lives in settings (US-026).
-- Provider wiring per decision 0008 (Supabase Auth) - confirm/supersede that decision before implementation.
+- Provider/session boundary is defined in decision 0009. This slice persists
+  non-sensitive local session markers; real Supabase Auth token exchange remains
+  a future high-risk integration boundary.
 
 ## Design Reference
 
@@ -36,14 +38,19 @@ Users can sign in with Apple/Google/email or continue as guest; guest mode never
 ## Design Notes
 
 - UI surfaces: Authentication Screen; Email Sign In / Sign Up Screen
-- Commands / Queries / API / Tables: to be defined when the story is selected
-  and the data model exists.
-- Auth hard gate: expand this packet to docs/templates/high-risk-story/ folder (execplan/overview/design/validation) when selected for implementation.
+- Commands / Queries / API / Tables: no backend commands, API, or tables are
+  introduced in this slice.
+- High-risk packet expanded under
+  `docs/stories/epics/E02-onboarding-auth/US-005-authentication/`.
+- `src/app/index.tsx` now routes feature intro to Auth, Auth to Email Auth or
+  Location Primer, and persisted sessions directly to the primer handoff.
+- `src/utils/auth-session.ts` stores only provider/email metadata through Expo
+  SQLite localStorage. Passwords and tokens are not stored.
 
 ## Validation
 
 When updating durable proof status, use numeric booleans:
-`scripts/bin/harness-cli story update --id US-005 --unit 1 --integration 1 --e2e 0 --platform 0`.
+`scripts/bin/harness-cli story update --id US-005 --unit 1 --integration 1 --e2e 0 --platform 1`.
 
 | Layer | Expected proof |
 | --- | --- |
@@ -55,8 +62,18 @@ When updating durable proof status, use numeric booleans:
 
 ## Harness Delta
 
-None yet.
+- Intake #9 recorded for US-005 as high-risk.
+- Decision 0009 records the local session shell and provider-token boundary.
+- Durable story verify command set to `npm run lint && npx tsc --noEmit`.
 
 ## Evidence
 
-None yet - story is planned, not selected for implementation.
+Implemented auth, email auth, guest mode, and non-sensitive session persistence.
+Verification passed: `npm run lint`; `npx tsc --noEmit`;
+`scripts/bin/harness-cli story verify US-005`; `git diff --check`. iPhone 15
+Pro simulator smoke via Expo Go on iOS 17.2 rendered the first-run app after
+the US-005 changes; screenshot:
+`/tmp/cafemood-ios-simulator-us005-initial.png`. `simctl` in this environment
+does not expose tap gestures and macOS assistive access blocks desktop click
+automation, so auth-screen interaction proof is covered by static route/state
+validation in this pass.
