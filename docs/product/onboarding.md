@@ -44,6 +44,9 @@ Location Primer -> Choose Manually -> Manual Location Search -> Taste Onboarding
 
 - Guest browsing is a supported end-to-end path; signup is never a wall before
   the map.
+- US-005 implements the app-facing auth/session shell and guest mode. Real
+  Supabase Auth token exchange is a future high-risk integration boundary; see
+  `docs/decisions/0009-us005-auth-session-boundary.md`.
 - Location permission is always primed in-app before the OS dialog.
 - Taste profile feeds recommendation ranking (see `discovery.md`).
 - Auth provider work is high-risk lane (auth hard gate) — see E02 stories.

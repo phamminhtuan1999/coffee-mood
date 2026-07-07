@@ -6,6 +6,7 @@ import {
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
 } from "react-native";
 
@@ -17,8 +18,20 @@ import {
   VibeChip,
 } from "@/components/ui";
 import { theme } from "@/constants/theme";
+import {
+  AuthSession,
+  AuthSessionProvider,
+  loadAuthSession,
+  saveAuthSession,
+} from "@/utils/auth-session";
 
-type FirstRunStep = "splash" | "welcome" | "intro" | "location-primer";
+type FirstRunStep =
+  | "splash"
+  | "welcome"
+  | "intro"
+  | "auth"
+  | "email-auth"
+  | "location-primer";
 
 const introSlides = [
   {
@@ -39,10 +52,29 @@ const introSlides = [
 ] as const;
 
 export default function Index() {
-  const [step, setStep] = useState<FirstRunStep>("splash");
+  const [authSession, setAuthSession] = useState<AuthSession | null>(() =>
+    loadAuthSession(),
+  );
+  const [step, setStep] = useState<FirstRunStep>(() =>
+    authSession ? "location-primer" : "splash",
+  );
   const [slideIndex, setSlideIndex] = useState(0);
 
   const goToLocationPrimer = () => setStep("location-primer");
+  const continueWithSession = (
+    provider: AuthSessionProvider,
+    email?: string,
+  ) => {
+    const nextSession: AuthSession = {
+      provider,
+      email,
+      createdAt: new Date().toISOString(),
+    };
+
+    saveAuthSession(nextSession);
+    setAuthSession(nextSession);
+    goToLocationPrimer();
+  };
 
   if (step === "splash") {
     return <SplashScreen onContinue={() => setStep("welcome")} />;
@@ -61,7 +93,31 @@ export default function Index() {
   }
 
   if (step === "location-primer") {
-    return <LocationPrimerHandoff onBack={() => setStep("welcome")} />;
+    return (
+      <LocationPrimerHandoff
+        authSession={authSession}
+        onBack={() => setStep(authSession ? "auth" : "welcome")}
+      />
+    );
+  }
+
+  if (step === "auth") {
+    return (
+      <AuthScreen
+        onProvider={continueWithSession}
+        onEmail={() => setStep("email-auth")}
+        onGuest={() => continueWithSession("guest")}
+      />
+    );
+  }
+
+  if (step === "email-auth") {
+    return (
+      <EmailAuthScreen
+        onBack={() => setStep("auth")}
+        onContinue={(email) => continueWithSession("email", email)}
+      />
+    );
   }
 
   return (
@@ -70,7 +126,7 @@ export default function Index() {
       onSkip={goToLocationPrimer}
       onContinue={() => {
         if (slideIndex === introSlides.length - 1) {
-          goToLocationPrimer();
+          setStep("auth");
           return;
         }
 
@@ -324,10 +380,16 @@ function FeatureIntroScreen({
 }
 
 type LocationPrimerHandoffProps = {
+  authSession: AuthSession | null;
   onBack: () => void;
 };
 
-function LocationPrimerHandoff({ onBack }: LocationPrimerHandoffProps) {
+function LocationPrimerHandoff({
+  authSession,
+  onBack,
+}: LocationPrimerHandoffProps) {
+  const sessionLabel = authSession ? authSessionLabel(authSession) : "Guest path";
+
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
@@ -356,8 +418,9 @@ function LocationPrimerHandoff({ onBack }: LocationPrimerHandoffProps) {
           color: theme.colors.text.muted,
         }}
       >
-        Guest mode skips auth and continues to the location primer. US-006 owns
-        the full permission and manual-location flow.
+        {authSession
+          ? "Your session is saved for this device. US-006 owns the full permission and manual-location flow."
+          : "Guest mode skips auth and continues to the location primer. US-006 owns the full permission and manual-location flow."}
       </Text>
       <View
         style={{
@@ -377,7 +440,7 @@ function LocationPrimerHandoff({ onBack }: LocationPrimerHandoffProps) {
             textTransform: "uppercase",
           }}
         >
-          Guest path
+          {sessionLabel}
         </Text>
         <Text
           style={{
@@ -386,13 +449,445 @@ function LocationPrimerHandoff({ onBack }: LocationPrimerHandoffProps) {
             color: theme.colors.text.espresso900,
           }}
         >
-          Welcome -&gt; Explore as Guest -&gt; Location Primer
+          {authSession
+            ? "Auth -> Session Saved -> Location Primer"
+            : "Welcome -> Explore as Guest -> Location Primer"}
         </Text>
       </View>
       <View style={{ flex: 1, minHeight: theme.spacing.xxxl }} />
       <ActionButton label="Back to Welcome" variant="secondary" onPress={onBack} />
     </ScrollView>
   );
+}
+
+type AuthScreenProps = {
+  onProvider: (provider: AuthSessionProvider) => void;
+  onEmail: () => void;
+  onGuest: () => void;
+};
+
+function AuthScreen({ onProvider, onEmail, onGuest }: AuthScreenProps) {
+  return (
+    <ScrollView
+      contentInsetAdjustmentBehavior="automatic"
+      style={{ backgroundColor: theme.colors.background.cream50 }}
+      contentContainerStyle={{
+        minHeight: 844,
+        paddingHorizontal: 28,
+        paddingTop: 78,
+        paddingBottom: theme.spacing.xxl,
+      }}
+    >
+      <WarmMapTexture />
+      <View style={{ alignItems: "center" }}>
+        <BrandMark size={62} />
+      </View>
+      <View
+        style={{
+          minHeight: 260,
+          justifyContent: "center",
+          paddingVertical: theme.spacing.xl,
+        }}
+      >
+        <Text
+          style={{
+            ...theme.typography.title,
+            color: theme.colors.text.espresso900,
+            textAlign: "center",
+          }}
+        >
+          Save your cafe mood.
+        </Text>
+        <Text
+          style={{
+            ...theme.typography.bodySmall,
+            marginTop: theme.spacing.xs,
+            color: theme.colors.text.muted,
+            textAlign: "center",
+          }}
+        >
+          Sign in to keep collections, routes, and your taste profile. Or keep
+          exploring - no pressure.
+        </Text>
+      </View>
+      <View style={{ gap: theme.spacing.sm }}>
+        <AuthOptionButton
+          icon="sf:apple.logo"
+          label="Continue with Apple"
+          variant="dark"
+          onPress={() => onProvider("apple")}
+        />
+        <AuthOptionButton
+          icon="sf:g.circle.fill"
+          label="Continue with Google"
+          onPress={() => onProvider("google")}
+        />
+        <AuthOptionButton
+          icon="sf:envelope.fill"
+          label="Continue with Email"
+          onPress={onEmail}
+        />
+      </View>
+      <View style={{ flex: 1, minHeight: theme.spacing.lg }} />
+      <Pressable
+        accessibilityRole="button"
+        onPress={onGuest}
+        style={({ pressed }) => ({
+          minHeight: 52,
+          alignItems: "center",
+          justifyContent: "center",
+          padding: theme.spacing.md,
+          opacity: pressed ? 0.72 : 1,
+        })}
+      >
+        <Text
+          style={{
+            ...theme.typography.bodySmall,
+            fontFamily: theme.fonts.family.sansSemibold,
+            color: theme.colors.text.muted,
+          }}
+        >
+          Continue as Guest
+        </Text>
+      </Pressable>
+    </ScrollView>
+  );
+}
+
+type EmailAuthScreenProps = {
+  onBack: () => void;
+  onContinue: (email: string) => void;
+};
+
+function EmailAuthScreen({ onBack, onContinue }: EmailAuthScreenProps) {
+  const [mode, setMode] = useState<"sign-in" | "sign-up">("sign-in");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState(
+    "Use a strong password to keep collections and taste profile synced later.",
+  );
+
+  const isSignIn = mode === "sign-in";
+  const submitLabel = isSignIn ? "Sign In" : "Create Account";
+  const title = isSignIn ? "Welcome back." : "Create your account.";
+  const subtitle = isSignIn
+    ? "Pick up your saved cafes and routes."
+    : "Keep your cafe map, taste profile, and future routes together.";
+
+  const handleSubmit = () => {
+    const trimmedEmail = email.trim().toLowerCase();
+
+    if (!trimmedEmail.includes("@") || !trimmedEmail.includes(".")) {
+      setMessage("Enter a valid email address to continue.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setMessage("Password must be at least 8 characters.");
+      return;
+    }
+
+    onContinue(trimmedEmail);
+  };
+
+  return (
+    <ScrollView
+      contentInsetAdjustmentBehavior="automatic"
+      keyboardShouldPersistTaps="handled"
+      style={{ backgroundColor: theme.colors.background.cream50 }}
+      contentContainerStyle={{
+        minHeight: 844,
+        paddingHorizontal: 28,
+        paddingTop: 62,
+        paddingBottom: theme.spacing.xxl,
+      }}
+    >
+      <WarmMapTexture />
+      <View style={{ alignItems: "flex-start" }}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={onBack}
+          style={({ pressed }) => ({
+            minHeight: 42,
+            justifyContent: "center",
+            opacity: pressed ? 0.72 : 1,
+          })}
+        >
+          <Text
+            style={{
+              ...theme.typography.caption,
+              fontFamily: theme.fonts.family.sansBold,
+              color: theme.colors.text.muted,
+            }}
+          >
+            Back
+          </Text>
+        </Pressable>
+      </View>
+      <View
+        style={{
+          marginTop: theme.spacing.lg,
+          padding: theme.spacing.screen,
+          borderRadius: theme.radius.card,
+          borderCurve: "continuous",
+          borderWidth: 1,
+          borderColor: theme.colors.surface.borderSoft,
+          backgroundColor: theme.colors.surface.cardCream,
+        }}
+      >
+        <Text
+          style={{
+            ...theme.typography.title,
+            color: theme.colors.text.espresso900,
+          }}
+        >
+          {title}
+        </Text>
+        <Text
+          style={{
+            ...theme.typography.bodySmall,
+            marginTop: theme.spacing.xs,
+            color: theme.colors.text.muted,
+          }}
+        >
+          {subtitle}
+        </Text>
+        <View style={{ gap: theme.spacing.sm, marginTop: theme.spacing.lg }}>
+          <AuthTextField
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            placeholder="you@example.com"
+          />
+          <AuthTextField
+            label="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            placeholder="8+ characters"
+          />
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() =>
+            setMessage("Password reset email will be enabled with Supabase Auth.")
+          }
+          style={({ pressed }) => ({
+            alignItems: "center",
+            paddingVertical: theme.spacing.sm,
+            opacity: pressed ? 0.72 : 1,
+          })}
+        >
+          <Text
+            style={{
+              ...theme.typography.caption,
+              fontFamily: theme.fonts.family.sansSemibold,
+              color: theme.colors.brand.roastedBrown,
+            }}
+          >
+            Forgot password?
+          </Text>
+        </Pressable>
+        <View
+          style={{
+            minHeight: 48,
+            justifyContent: "center",
+            borderRadius: theme.radius.button,
+            borderCurve: "continuous",
+            backgroundColor: theme.colors.background.warmPaper,
+            paddingHorizontal: theme.spacing.md,
+            paddingVertical: theme.spacing.sm,
+          }}
+        >
+          <Text
+            selectable
+            style={{
+              ...theme.typography.caption,
+              color: theme.colors.text.muted,
+              textAlign: "center",
+            }}
+          >
+            {message}
+          </Text>
+        </View>
+        <View style={{ marginTop: theme.spacing.md }}>
+          <ActionButton label={submitLabel} onPress={handleSubmit} />
+        </View>
+      </View>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => {
+          setMode(isSignIn ? "sign-up" : "sign-in");
+          setMessage(
+            isSignIn
+              ? "Create an account with email and password."
+              : "Sign in with your saved email and password.",
+          );
+        }}
+        style={({ pressed }) => ({
+          alignItems: "center",
+          paddingVertical: theme.spacing.lg,
+          opacity: pressed ? 0.72 : 1,
+        })}
+      >
+        <Text
+          style={{
+            ...theme.typography.bodySmall,
+            color: theme.colors.text.muted,
+          }}
+        >
+          {isSignIn ? "New here? " : "Already have an account? "}
+          <Text
+            style={{
+              fontFamily: theme.fonts.family.sansBold,
+              color: theme.colors.brand.roastedBrown,
+            }}
+          >
+            {isSignIn ? "Create account" : "Sign in"}
+          </Text>
+        </Text>
+      </Pressable>
+    </ScrollView>
+  );
+}
+
+type AuthOptionButtonProps = {
+  icon: string;
+  label: string;
+  variant?: "light" | "dark";
+  onPress: () => void;
+};
+
+function AuthOptionButton({
+  icon,
+  label,
+  variant = "light",
+  onPress,
+}: AuthOptionButtonProps) {
+  const dark = variant === "dark";
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => ({
+        minHeight: 56,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: theme.spacing.sm,
+        borderRadius: theme.radius.button,
+        borderCurve: "continuous",
+        borderWidth: dark ? 0 : 1,
+        borderColor: theme.colors.surface.borderMedium,
+        backgroundColor: dark
+          ? pressed
+            ? theme.colors.text.espresso700
+            : theme.colors.text.espresso900
+          : pressed
+            ? theme.colors.surface.pressed
+            : theme.colors.surface.cardCream,
+        boxShadow: dark ? theme.shadows.button : undefined,
+      })}
+    >
+      <Image
+        source={icon}
+        style={{
+          width: 18,
+          height: 18,
+          tintColor: dark
+            ? theme.colors.background.cream50
+            : theme.colors.text.espresso900,
+        }}
+      />
+      <Text
+        style={{
+          ...theme.typography.bodySmall,
+          fontFamily: theme.fonts.family.sansSemibold,
+          color: dark
+            ? theme.colors.background.cream50
+            : theme.colors.text.espresso900,
+        }}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+type AuthTextFieldProps = {
+  label: string;
+  value: string;
+  placeholder: string;
+  onChangeText: (value: string) => void;
+  keyboardType?: "default" | "email-address";
+  autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  secureTextEntry?: boolean;
+};
+
+function AuthTextField({
+  label,
+  value,
+  placeholder,
+  onChangeText,
+  keyboardType = "default",
+  autoCapitalize = "sentences",
+  secureTextEntry = false,
+}: AuthTextFieldProps) {
+  return (
+    <View
+      style={{
+        gap: theme.spacing.xs,
+        borderRadius: theme.radius.button,
+        borderCurve: "continuous",
+        borderWidth: 1,
+        borderColor: theme.colors.surface.borderMedium,
+        backgroundColor: theme.colors.background.cream50,
+        paddingHorizontal: theme.spacing.md,
+        paddingVertical: theme.spacing.sm,
+      }}
+    >
+      <Text
+        style={{
+          ...theme.typography.caption,
+          fontFamily: theme.fonts.family.sansBold,
+          color: theme.colors.text.muted,
+          textTransform: "uppercase",
+        }}
+      >
+        {label}
+      </Text>
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        keyboardType={keyboardType}
+        autoCapitalize={autoCapitalize}
+        secureTextEntry={secureTextEntry}
+        placeholder={placeholder}
+        placeholderTextColor={theme.colors.surface.disabledText}
+        style={{
+          ...theme.typography.body,
+          minHeight: 32,
+          color: theme.colors.text.espresso900,
+          padding: 0,
+        }}
+      />
+    </View>
+  );
+}
+
+function authSessionLabel(session: AuthSession) {
+  if (session.provider === "guest") {
+    return "Guest session";
+  }
+
+  if (session.provider === "email" && session.email) {
+    return session.email;
+  }
+
+  return `${session.provider[0].toUpperCase()}${session.provider.slice(1)} session`;
 }
 
 type BrandMarkProps = {
