@@ -48,5 +48,8 @@ Location Primer -> Choose Manually -> Manual Location Search -> Taste Onboarding
   Supabase Auth token exchange is a future high-risk integration boundary; see
   `docs/decisions/0009-us005-auth-session-boundary.md`.
 - Location permission is always primed in-app before the OS dialog.
+- US-006 requests foreground location only from the primer CTA. The current
+  slice does not read, store, log, or place coordinates in URLs; denied
+  permission falls back to manual city/neighborhood selection.
 - Taste profile feeds recommendation ranking (see `discovery.md`).
 - Auth provider work is high-risk lane (auth hard gate) — see E02 stories.

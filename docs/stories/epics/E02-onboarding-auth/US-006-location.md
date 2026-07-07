@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -36,13 +36,22 @@ Location is primed in-app before the OS dialog; privacy-conscious users can pick
 ## Design Notes
 
 - UI surfaces: Location Permission Primer Screen; Manual Location Search Screen
-- Commands / Queries / API / Tables: to be defined when the story is selected
-  and the data model exists.
+- Commands / Queries / API / Tables: no backend commands, API, or tables are
+  introduced in this slice.
+- `src/app/index.tsx` now renders the Location Primer, requests foreground
+  location only after "Use Current Location", falls back to Manual Location when
+  permission is denied/unavailable, and hands off to US-007 taste onboarding.
+- Manual Location includes a search-first layout, recent locations, popular
+  neighborhoods, and a use-current-location link.
+- Sensitive-data boundary: this slice requests permission but does not read,
+  store, log, or put coordinates in URLs.
+- `expo-location` is configured with an iOS foreground permission rationale in
+  `app.json`.
 
 ## Validation
 
 When updating durable proof status, use numeric booleans:
-`scripts/bin/harness-cli story update --id US-006 --unit 1 --integration 1 --e2e 0 --platform 0`.
+`scripts/bin/harness-cli story update --id US-006 --unit 1 --integration 1 --e2e 0 --platform 1`.
 
 | Layer | Expected proof |
 | --- | --- |
@@ -54,8 +63,20 @@ When updating durable proof status, use numeric booleans:
 
 ## Harness Delta
 
-None yet.
+- Intake #10 recorded for US-006 as normal lane.
+- Durable story verify command set to `npm run lint && npx tsc --noEmit`.
+- PR is stacked on US-005 while PR #6 is still open, because US-006 depends on
+  the Auth -> Location Primer route introduced there.
 
 ## Evidence
 
-None yet - story is planned, not selected for implementation.
+Implemented location primer, foreground permission request, manual location
+search, denied/unavailable fallback, and taste-onboarding handoff. Verification
+passed: `npm run lint`; `npx tsc --noEmit`;
+`scripts/bin/harness-cli story verify US-006`; `git diff --check`. iPhone 15
+Pro simulator smoke via Expo Go on iOS 17.2 rendered the location primer safely
+above the home indicator; screenshot:
+`/tmp/cafemood-ios-simulator-us006-location.png`. Interaction automation remains
+limited by the simulator tap gap recorded in backlog #2, so manual screen and
+permission-denied transitions are covered by static route/state validation in
+this pass.
