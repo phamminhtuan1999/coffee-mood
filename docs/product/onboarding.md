@@ -52,4 +52,7 @@ Location Primer -> Choose Manually -> Manual Location Search -> Taste Onboarding
   slice does not read, store, log, or place coordinates in URLs; denied
   permission falls back to manual city/neighborhood selection.
 - Taste profile feeds recommendation ranking (see `discovery.md`).
+- US-007 persists a local taste profile with cafe types, priorities, distance,
+  and price. Backend sync and durable recommendation storage remain future
+  data-model work.
 - Auth provider work is high-risk lane (auth hard gate) — see E02 stories.

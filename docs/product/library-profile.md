@@ -26,6 +26,10 @@ Coffee, 12% Outdoor), favorite vibes, favorite neighborhoods, saved tags,
 recently visited, recommendations. Warm charts/cards — not a corporate
 dashboard.
 
+US-007 captures the first local taste profile as cafe types, priorities,
+distance, and price. Backend sync, derived stats, visit history, and
+recommendation persistence remain future data-model work.
+
 ## Profile
 
 Avatar, name, saved/collections/visited counts, taste profile shortcut,
