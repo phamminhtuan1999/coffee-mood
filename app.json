@@ -33,7 +33,13 @@
           "imageWidth": 76
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "CafeMood uses your location to show nearby cafes and build routes."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
