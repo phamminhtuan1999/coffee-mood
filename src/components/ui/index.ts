@@ -1,10 +1,13 @@
 export { AISummaryCard } from "@/components/ui/ai-summary-card";
 export { CafeButton, IconButton } from "@/components/ui/button";
+export { CafeBottomSheetShell } from "@/components/ui/cafe-bottom-sheet-shell";
 export { CafeImageCard } from "@/components/ui/cafe-image-card";
+export { ClusteredPhotoPin, PhotoMapPin } from "@/components/ui/photo-map-pin";
 export { CollectionCard } from "@/components/ui/collection-card";
 export { EmptyStateCard } from "@/components/ui/empty-state-card";
 export { FilterRow } from "@/components/ui/filter-row";
 export { LoadingSkeleton } from "@/components/ui/loading-skeleton";
+export { MapPreviewSurface } from "@/components/ui/map-preview-surface";
 export { RouteStopCard } from "@/components/ui/route-stop-card";
 export { SearchBar } from "@/components/ui/search-bar";
 export { ScoreBadge } from "@/components/ui/score-badge";
