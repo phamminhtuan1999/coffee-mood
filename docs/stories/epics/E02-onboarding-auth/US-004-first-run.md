@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -36,13 +36,23 @@ New users see splash -> welcome -> 3-slide feature intro communicating the produ
 ## Design Notes
 
 - UI surfaces: Splash Screen; Welcome Screen; Feature Intro Carousel
-- Commands / Queries / API / Tables: to be defined when the story is selected
-  and the data model exists.
+- Commands / Queries / API / Tables: none for this foundation story.
+- `src/app/index.tsx` now hosts the first-run flow as an in-app state machine:
+  splash -> welcome -> feature intro carousel -> location-primer handoff.
+- The guest path is visible on the welcome screen and skips auth into a
+  lightweight location-primer handoff. US-006 still owns the full location
+  permission primer and manual-location search implementation.
+- The feature intro carousel implements the three product slides from
+  `docs/product/onboarding.md`: Explore visually, Match your mood, and Save
+  your coffee map.
+- The visuals reuse existing token-backed UI primitives from US-002/US-003,
+  including `CafeButton`, `CafeImageCard`, `CollectionCard`,
+  `MapPreviewSurface`, `PhotoMapPin`, and `VibeChip`.
 
 ## Validation
 
 When updating durable proof status, use numeric booleans:
-`scripts/bin/harness-cli story update --id US-004 --unit 1 --integration 1 --e2e 0 --platform 0`.
+`scripts/bin/harness-cli story update --id US-004 --unit 1 --integration 1 --e2e 0 --platform 1`.
 
 | Layer | Expected proof |
 | --- | --- |
@@ -54,8 +64,17 @@ When updating durable proof status, use numeric booleans:
 
 ## Harness Delta
 
-None yet.
+- `US-004` marked `in_progress` before implementation and verified through
+  `scripts/bin/harness-cli story verify US-004`.
 
 ## Evidence
 
-None yet - story is planned, not selected for implementation.
+- `npm run lint` passed.
+- `npx tsc --noEmit` passed.
+- `scripts/bin/harness-cli story verify US-004` passed.
+- `git diff --check` passed.
+- `rg` color scan found hard-coded colors and rgba values only inside
+  `src/constants/theme.ts`, the intended token source.
+- iPhone 15 Pro simulator smoke via Expo Go on iOS 17.2 passed: splash screen
+  rendered with logo, tagline, warm map texture, and loading dots. Screenshot
+  captured at `/tmp/cafemood-ios-simulator-us004.png`.
