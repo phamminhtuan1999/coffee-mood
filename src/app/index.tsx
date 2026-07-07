@@ -1,5 +1,7 @@
+import * as Location from "expo-location";
 import { Image } from "expo-image";
 import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import {
   Animated,
   Easing,
@@ -31,7 +33,20 @@ type FirstRunStep =
   | "intro"
   | "auth"
   | "email-auth"
-  | "location-primer";
+  | "location-primer"
+  | "manual-location"
+  | "taste-handoff";
+
+type LocationSelection =
+  | {
+      kind: "current";
+      label: "Current location";
+    }
+  | {
+      kind: "manual";
+      label: string;
+      meta: string;
+    };
 
 const introSlides = [
   {
@@ -51,6 +66,19 @@ const introSlides = [
   },
 ] as const;
 
+const recentLocations = [
+  { name: "North Park", meta: "Recent neighborhood" },
+  { name: "La Jolla", meta: "Recent coastal search" },
+] as const;
+
+const popularNeighborhoods = [
+  "San Diego",
+  "Mira Mesa",
+  "La Jolla",
+  "North Park",
+  "Convoy",
+] as const;
+
 export default function Index() {
   const [authSession, setAuthSession] = useState<AuthSession | null>(() =>
     loadAuthSession(),
@@ -59,8 +87,44 @@ export default function Index() {
     authSession ? "location-primer" : "splash",
   );
   const [slideIndex, setSlideIndex] = useState(0);
+  const [locationSelection, setLocationSelection] =
+    useState<LocationSelection | null>(null);
+  const [locationNotice, setLocationNotice] = useState<string | null>(null);
+  const [isRequestingLocation, setIsRequestingLocation] = useState(false);
 
   const goToLocationPrimer = () => setStep("location-primer");
+  const continueToTaste = (selection: LocationSelection) => {
+    setLocationSelection(selection);
+    setLocationNotice(null);
+    setStep("taste-handoff");
+  };
+  const requestCurrentLocation = async () => {
+    setIsRequestingLocation(true);
+    setLocationNotice(null);
+
+    try {
+      const permission = await Location.requestForegroundPermissionsAsync();
+
+      if (permission.status === "granted") {
+        continueToTaste({ kind: "current", label: "Current location" });
+        return;
+      }
+
+      setLocationNotice(
+        permission.canAskAgain
+          ? "Location access was not granted. Choose a city or neighborhood instead."
+          : "Location access is off in Settings. Choose a city or neighborhood instead.",
+      );
+      setStep("manual-location");
+    } catch {
+      setLocationNotice(
+        "Location is unavailable right now. Choose a city or neighborhood instead.",
+      );
+      setStep("manual-location");
+    } finally {
+      setIsRequestingLocation(false);
+    }
+  };
   const continueWithSession = (
     provider: AuthSessionProvider,
     email?: string,
@@ -94,9 +158,34 @@ export default function Index() {
 
   if (step === "location-primer") {
     return (
-      <LocationPrimerHandoff
+      <LocationPrimerScreen
         authSession={authSession}
-        onBack={() => setStep(authSession ? "auth" : "welcome")}
+        onUseCurrentLocation={requestCurrentLocation}
+        onChooseManually={() => setStep("manual-location")}
+        isRequestingLocation={isRequestingLocation}
+      />
+    );
+  }
+
+  if (step === "manual-location") {
+    return (
+      <ManualLocationScreen
+        notice={locationNotice}
+        onBack={goToLocationPrimer}
+        onUseCurrentLocation={requestCurrentLocation}
+        isRequestingLocation={isRequestingLocation}
+        onChooseLocation={(location) =>
+          continueToTaste({ kind: "manual", ...location })
+        }
+      />
+    );
+  }
+
+  if (step === "taste-handoff") {
+    return (
+      <TasteOnboardingHandoff
+        selection={locationSelection}
+        onBack={() => setStep("manual-location")}
       />
     );
   }
@@ -379,17 +468,291 @@ function FeatureIntroScreen({
   );
 }
 
-type LocationPrimerHandoffProps = {
+type LocationPrimerScreenProps = {
   authSession: AuthSession | null;
+  isRequestingLocation: boolean;
+  onUseCurrentLocation: () => void;
+  onChooseManually: () => void;
+};
+
+function LocationPrimerScreen({
+  authSession,
+  isRequestingLocation,
+  onUseCurrentLocation,
+  onChooseManually,
+}: LocationPrimerScreenProps) {
+  return (
+    <ScrollView
+      contentInsetAdjustmentBehavior="automatic"
+      style={{ backgroundColor: theme.colors.background.cream50 }}
+      contentContainerStyle={{
+        minHeight: 844,
+        alignItems: "center",
+        paddingHorizontal: 28,
+        paddingTop: 104,
+        paddingBottom: theme.spacing.xxl,
+      }}
+    >
+      <WarmMapTexture />
+      <LocationMapOrb />
+      <Text
+        style={{
+          ...theme.typography.title,
+          marginTop: theme.spacing.xl,
+          color: theme.colors.text.espresso900,
+          textAlign: "center",
+        }}
+      >
+        Find cafes near you
+      </Text>
+      <Text
+        style={{
+          ...theme.typography.bodySmall,
+          marginTop: theme.spacing.sm,
+          color: theme.colors.text.muted,
+          textAlign: "center",
+        }}
+      >
+        We use your location to show nearby cafes and build routes. You can also
+        choose a city manually.
+      </Text>
+      <View
+        style={{
+          alignSelf: "stretch",
+          minHeight: theme.spacing.xxl,
+          marginTop: theme.spacing.lg,
+        }}
+      >
+        {authSession ? (
+          <SessionPill label={authSessionLabel(authSession)} />
+        ) : null}
+      </View>
+      <View style={{ flex: 1, minHeight: theme.spacing.xxl }} />
+      <View
+        style={{
+          alignSelf: "stretch",
+          gap: theme.spacing.xs,
+          paddingBottom: theme.spacing.xxl,
+        }}
+      >
+        <ActionButton
+          label={isRequestingLocation ? "Opening Permission..." : "Use Current Location"}
+          onPress={onUseCurrentLocation}
+        />
+        <Pressable
+          accessibilityRole="button"
+          onPress={onChooseManually}
+          style={({ pressed }) => ({
+            minHeight: 52,
+            alignItems: "center",
+            justifyContent: "center",
+            padding: theme.spacing.md,
+            opacity: pressed ? 0.72 : 1,
+          })}
+        >
+          <Text
+            style={{
+              ...theme.typography.bodySmall,
+              fontFamily: theme.fonts.family.sansSemibold,
+              color: theme.colors.text.espresso700,
+            }}
+          >
+            Choose Manually
+          </Text>
+        </Pressable>
+      </View>
+    </ScrollView>
+  );
+}
+
+type ManualLocationScreenProps = {
+  notice: string | null;
+  isRequestingLocation: boolean;
+  onBack: () => void;
+  onUseCurrentLocation: () => void;
+  onChooseLocation: (location: { label: string; meta: string }) => void;
+};
+
+function ManualLocationScreen({
+  notice,
+  isRequestingLocation,
+  onBack,
+  onUseCurrentLocation,
+  onChooseLocation,
+}: ManualLocationScreenProps) {
+  const [query, setQuery] = useState("");
+  const trimmedQuery = query.trim();
+  const matchingNeighborhoods = popularNeighborhoods.filter((name) =>
+    name.toLowerCase().includes(trimmedQuery.toLowerCase()),
+  );
+
+  return (
+    <ScrollView
+      contentInsetAdjustmentBehavior="automatic"
+      keyboardShouldPersistTaps="handled"
+      style={{ backgroundColor: theme.colors.background.cream50 }}
+      contentContainerStyle={{
+        minHeight: 844,
+        paddingHorizontal: theme.spacing.lg,
+        paddingTop: 62,
+        paddingBottom: theme.spacing.xxl,
+      }}
+    >
+      <WarmMapTexture />
+      <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.sm }}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={onBack}
+          style={({ pressed }) => ({
+            width: 44,
+            height: 44,
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: theme.radius.photoPin,
+            backgroundColor: theme.colors.surface.cardCream,
+            opacity: pressed ? 0.72 : 1,
+          })}
+        >
+          <Text
+            style={{
+              fontFamily: theme.fonts.family.sansSemibold,
+              fontSize: 26,
+              lineHeight: 30,
+              color: theme.colors.text.espresso900,
+            }}
+          >
+            ‹
+          </Text>
+        </Pressable>
+        <View
+          style={{
+            flex: 1,
+            minHeight: 50,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.sm,
+            borderRadius: theme.radius.chip,
+            borderWidth: 1,
+            borderColor: theme.colors.surface.borderMedium,
+            backgroundColor: theme.colors.surface.cardCream,
+            paddingHorizontal: theme.spacing.md,
+          }}
+        >
+          <Image
+            source="sf:magnifyingglass"
+            style={{
+              width: 15,
+              height: 15,
+              tintColor: theme.colors.text.muted,
+            }}
+          />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search city or neighborhood"
+            placeholderTextColor={theme.colors.text.muted}
+            autoCapitalize="words"
+            style={{
+              ...theme.typography.bodySmall,
+              flex: 1,
+              minHeight: 46,
+              color: theme.colors.text.espresso900,
+              padding: 0,
+            }}
+          />
+        </View>
+      </View>
+      {notice ? (
+        <View
+          style={{
+            marginTop: theme.spacing.lg,
+            borderRadius: theme.radius.button,
+            borderCurve: "continuous",
+            backgroundColor: theme.colors.background.warmPaper,
+            padding: theme.spacing.md,
+          }}
+        >
+          <Text
+            selectable
+            style={{
+              ...theme.typography.caption,
+              color: theme.colors.text.muted,
+            }}
+          >
+            {notice}
+          </Text>
+        </View>
+      ) : null}
+      <LocationSection title="Recent">
+        {recentLocations.map((location) => (
+          <LocationRow
+            key={location.name}
+            name={location.name}
+            meta={location.meta}
+            onPress={() =>
+              onChooseLocation({ label: location.name, meta: location.meta })
+            }
+          />
+        ))}
+      </LocationSection>
+      <LocationSection title="Popular neighborhoods">
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.spacing.xs }}>
+          {(trimmedQuery ? matchingNeighborhoods : popularNeighborhoods).map((name) => (
+            <LocationChip
+              key={name}
+              label={name}
+              onPress={() =>
+                onChooseLocation({ label: name, meta: "Selected neighborhood" })
+              }
+            />
+          ))}
+          {trimmedQuery && matchingNeighborhoods.length === 0 ? (
+            <LocationChip
+              label={`Use "${trimmedQuery}"`}
+              onPress={() =>
+                onChooseLocation({
+                  label: trimmedQuery,
+                  meta: "Manual search location",
+                })
+              }
+            />
+          ) : null}
+        </View>
+      </LocationSection>
+      <Pressable
+        accessibilityRole="button"
+        onPress={onUseCurrentLocation}
+        style={({ pressed }) => ({
+          minHeight: 52,
+          alignItems: "center",
+          justifyContent: "center",
+          marginTop: theme.spacing.xl,
+          opacity: pressed ? 0.72 : 1,
+        })}
+      >
+        <Text
+          style={{
+            ...theme.typography.bodySmall,
+            fontFamily: theme.fonts.family.sansSemibold,
+            color: theme.colors.brand.roastedBrown,
+          }}
+        >
+          {isRequestingLocation ? "Opening Permission..." : "Use current location"}
+        </Text>
+      </Pressable>
+    </ScrollView>
+  );
+}
+
+type TasteOnboardingHandoffProps = {
+  selection: LocationSelection | null;
   onBack: () => void;
 };
 
-function LocationPrimerHandoff({
-  authSession,
+function TasteOnboardingHandoff({
+  selection,
   onBack,
-}: LocationPrimerHandoffProps) {
-  const sessionLabel = authSession ? authSessionLabel(authSession) : "Guest path";
-
+}: TasteOnboardingHandoffProps) {
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
@@ -409,7 +772,7 @@ function LocationPrimerHandoff({
           color: theme.colors.text.espresso900,
         }}
       >
-        Location primer is next
+        Taste onboarding is next
       </Text>
       <Text
         style={{
@@ -418,9 +781,9 @@ function LocationPrimerHandoff({
           color: theme.colors.text.muted,
         }}
       >
-        {authSession
-          ? "Your session is saved for this device. US-006 owns the full permission and manual-location flow."
-          : "Guest mode skips auth and continues to the location primer. US-006 owns the full permission and manual-location flow."}
+        {selection?.kind === "current"
+          ? "Location access is ready. US-007 owns the taste profile questions before the main map."
+          : "Your manual area is saved for this flow. US-007 owns the taste profile questions before the main map."}
       </Text>
       <View
         style={{
@@ -440,7 +803,7 @@ function LocationPrimerHandoff({
             textTransform: "uppercase",
           }}
         >
-          {sessionLabel}
+          Location path
         </Text>
         <Text
           style={{
@@ -449,14 +812,226 @@ function LocationPrimerHandoff({
             color: theme.colors.text.espresso900,
           }}
         >
-          {authSession
-            ? "Auth -> Session Saved -> Location Primer"
-            : "Welcome -> Explore as Guest -> Location Primer"}
+          {selection?.label ?? "Manual location"}
         </Text>
+        {selection?.kind === "manual" ? (
+          <Text
+            style={{
+              ...theme.typography.caption,
+              marginTop: theme.spacing.xs,
+              color: theme.colors.text.muted,
+            }}
+          >
+            {selection.meta}
+          </Text>
+        ) : null}
       </View>
       <View style={{ flex: 1, minHeight: theme.spacing.xxxl }} />
-      <ActionButton label="Back to Welcome" variant="secondary" onPress={onBack} />
+      <ActionButton label="Change Location" variant="secondary" onPress={onBack} />
     </ScrollView>
+  );
+}
+
+function LocationMapOrb() {
+  return (
+    <View
+      style={{
+        width: 240,
+        height: 240,
+        overflow: "hidden",
+        borderRadius: theme.radius.photoPin,
+        borderWidth: 1,
+        borderColor: theme.colors.surface.borderSoft,
+        backgroundColor: theme.colors.background.warmPaper,
+      }}
+    >
+      <MapPreviewSurface>
+        <View style={{ position: "absolute", top: 42, left: 52 }}>
+          <PhotoMapPin label="Nearby cafe" tone="terracotta" />
+        </View>
+        <View style={{ position: "absolute", top: 108, left: 138 }}>
+          <PhotoMapPin label="Nearby outdoor cafe" tone="olive" />
+        </View>
+        <View
+          style={{
+            position: "absolute",
+            top: 150,
+            left: 70,
+            width: 24,
+            height: 24,
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: theme.radius.photoPin,
+            backgroundColor: theme.colors.surface.borderStrong,
+          }}
+        >
+          <View
+            style={{
+              width: 12,
+              height: 12,
+              borderRadius: theme.radius.photoPin,
+              borderWidth: 2,
+              borderColor: theme.colors.background.cream50,
+              backgroundColor: theme.colors.text.espresso900,
+            }}
+          />
+        </View>
+      </MapPreviewSurface>
+    </View>
+  );
+}
+
+type SessionPillProps = {
+  label: string;
+};
+
+function SessionPill({ label }: SessionPillProps) {
+  return (
+    <View
+      style={{
+        alignSelf: "center",
+        paddingHorizontal: theme.spacing.md,
+        paddingVertical: theme.spacing.xs,
+        borderRadius: theme.radius.chip,
+        borderWidth: 1,
+        borderColor: theme.colors.surface.borderSoft,
+        backgroundColor: theme.colors.surface.cardCream,
+      }}
+    >
+      <Text
+        style={{
+          ...theme.typography.caption,
+          color: theme.colors.text.muted,
+        }}
+      >
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+type LocationSectionProps = {
+  title: string;
+  children: ReactNode;
+};
+
+function LocationSection({ title, children }: LocationSectionProps) {
+  return (
+    <View style={{ marginTop: theme.spacing.xl }}>
+      <Text
+        style={{
+          ...theme.typography.caption,
+          fontFamily: theme.fonts.family.sansBold,
+          color: theme.colors.text.muted,
+          textTransform: "uppercase",
+        }}
+      >
+        {title}
+      </Text>
+      <View style={{ marginTop: theme.spacing.sm }}>{children}</View>
+    </View>
+  );
+}
+
+type LocationRowProps = {
+  name: string;
+  meta: string;
+  onPress: () => void;
+};
+
+function LocationRow({ name, meta, onPress }: LocationRowProps) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => ({
+        minHeight: 62,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: theme.spacing.sm,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.colors.surface.borderSoft,
+        paddingVertical: theme.spacing.sm,
+        opacity: pressed ? 0.72 : 1,
+      })}
+    >
+      <View
+        style={{
+          width: 34,
+          height: 34,
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: theme.radius.photoPin,
+          backgroundColor: theme.colors.background.warmPaper,
+        }}
+      >
+        <View
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: theme.radius.photoPin,
+            borderWidth: 2,
+            borderColor: theme.colors.brand.roastedBrown,
+          }}
+        />
+      </View>
+      <View>
+        <Text
+          style={{
+            ...theme.typography.bodySmall,
+            fontFamily: theme.fonts.family.sansMedium,
+            color: theme.colors.text.espresso900,
+          }}
+        >
+          {name}
+        </Text>
+        <Text
+          style={{
+            ...theme.typography.caption,
+            marginTop: 2,
+            color: theme.colors.text.muted,
+          }}
+        >
+          {meta}
+        </Text>
+      </View>
+    </Pressable>
+  );
+}
+
+type LocationChipProps = {
+  label: string;
+  onPress: () => void;
+};
+
+function LocationChip({ label, onPress }: LocationChipProps) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => ({
+        minHeight: 42,
+        justifyContent: "center",
+        paddingHorizontal: theme.spacing.screen,
+        paddingVertical: theme.spacing.xs,
+        borderRadius: theme.radius.chip,
+        borderWidth: 1,
+        borderColor: theme.colors.surface.borderMedium,
+        backgroundColor: pressed
+          ? theme.colors.surface.pressed
+          : theme.colors.surface.cardCream,
+      })}
+    >
+      <Text
+        style={{
+          ...theme.typography.bodySmall,
+          fontFamily: theme.fonts.family.sansMedium,
+          color: theme.colors.text.espresso700,
+        }}
+      >
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
