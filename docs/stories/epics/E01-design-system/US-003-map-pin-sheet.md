@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -40,13 +40,22 @@ Map-specific primitives - circular photo pin, clustered photo pin, cafe preview 
 ## Design Notes
 
 - UI surfaces: Photo Map Pin; Clustered Photo Pin; Cafe Preview Bottom Sheet
-- Commands / Queries / API / Tables: to be defined when the story is selected
-  and the data model exists.
+- Commands / Queries / API / Tables: none for this foundation story.
+- `PhotoMapPin` covers default, selected, scored, and saved bookmark states.
+- `ClusteredPhotoPin` derives the grouped marker from the B1 map context.
+- `CafeBottomSheetShell` exposes collapsed, half, and expanded snap-point
+  shells without integrating a bottom-sheet runtime. Decision 0008 remains
+  proposed; actual provider/library adoption is deferred until a story needs
+  draggable sheet behavior or a real map provider.
+- `MapPreviewSurface` provides the warm desaturated map-style shell using
+  token-backed native views instead of a map SDK.
+- `src/app/index.tsx` now shows the US-003 map shell in context and a small
+  pin-state strip below the first viewport.
 
 ## Validation
 
 When updating durable proof status, use numeric booleans:
-`scripts/bin/harness-cli story update --id US-003 --unit 1 --integration 1 --e2e 0 --platform 0`.
+`scripts/bin/harness-cli story update --id US-003 --unit 1 --integration 1 --e2e 0 --platform 1`.
 
 | Layer | Expected proof |
 | --- | --- |
@@ -58,8 +67,17 @@ When updating durable proof status, use numeric booleans:
 
 ## Harness Delta
 
-None yet.
+- `US-003` marked `in_progress` before implementation and verified through
+  `scripts/bin/harness-cli story verify US-003`.
 
 ## Evidence
 
-None yet - story is planned, not selected for implementation.
+- `npm run lint` passed.
+- `npx tsc --noEmit` passed.
+- `scripts/bin/harness-cli story verify US-003` passed.
+- `rg` color scan found hard-coded colors and rgba values only inside
+  `src/constants/theme.ts`, the intended token source.
+- iPhone 15 Pro simulator smoke via Expo Go on iOS 17.2 passed: warm map
+  surface, photo pins, cluster marker, floating actions, and half bottom sheet
+  rendered without visible clipping. Screenshot captured at
+  `/tmp/cafemood-ios-simulator-us003.png`.
