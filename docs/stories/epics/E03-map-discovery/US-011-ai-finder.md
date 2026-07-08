@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -37,9 +37,19 @@ Users describe what they want in natural language and get a best-match cafe with
 ## Design Notes
 
 - UI surfaces: AI Cafe Finder Screen; AI Result Screen
-- Commands / Queries / API / Tables: to be defined when the story is selected
-  and the data model exists.
-- External AI provider hard gate: expand to high-risk story folder when selected.
+- High-risk folder: `US-011-ai-finder/` (overview, execplan, design,
+  validation). AI provider deferred per decision 0013; deterministic
+  fixture matcher in `src/data/ai-finder-fixtures.ts` (prompt tokens
+  weighted 2, taste-profile tokens 1, baseScore tie-break).
+- Screen state machine in `src/app/ai-finder.tsx`: idle -> thinking (450ms
+  LoadingSkeleton) -> result | unavailable; Refine Search returns to idle
+  keeping the prompt. `?prompt=` deep-link param auto-runs the finder
+  (also used for simulator state QA).
+- Derivations recorded in the folder design.md: Refine Search action,
+  confidence line, thinking state, and the coffee-break fallback
+  (EmptyStateCard gained an optional `onCtaPress`).
+- Reserved prompt containing "coffee break" maps to the unavailable state,
+  the same state a future provider failure will use.
 
 ## Validation
 
@@ -56,8 +66,29 @@ When updating durable proof status, use numeric booleans:
 
 ## Harness Delta
 
-None yet.
+- Decision 0013 (defer AI provider) recorded with durable row.
+- Verify command configured:
+  `npm run lint && npx tsc --noEmit && npx jest ai-finder`.
 
 ## Evidence
 
-None yet - story is planned, not selected for implementation.
+- `npm run lint` passed; raw `npx tsc --noEmit` passed; `git diff --check`
+  passed.
+- 18 jest tests pass (`npx jest ai-finder`): matcher ranking for every
+  suggestion chip and prompt family, taste-profile boost, unavailable
+  trigger, fixture shape, and screen states (idle, thinking, result content,
+  chip fill, save toggle, refine, fallback CTA, back navigation, deep-link
+  param). Full suite: 69 tests pass.
+- `scripts/bin/harness-cli story verify US-011` passed.
+- iPhone 15 Pro simulator smoke via Expo Go on iOS 17.2 (decision 0012):
+  finder idle state, AI result state (best match, why-bullets, deep-linked
+  via `?prompt=Good latte`), and coffee-break fallback with Browse Map CTA
+  all rendered within safe areas. Screenshots:
+  `/tmp/cafemood-ios-simulator-us011-finder.png`,
+  `/tmp/cafemood-ios-simulator-us011-result.png`,
+  `/tmp/cafemood-ios-simulator-us011-ai-down.png`.
+- Interactive tap-through (chips, save toggle, refine, scroll to
+  alternatives/actions) remains covered by jest and static validation;
+  simulator tap automation is still blocked (backlog #2) and the desktop
+  control request was declined, so the human manual pass per decision 0012
+  is the remaining interaction proof.
