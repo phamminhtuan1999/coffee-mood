@@ -1,9 +1,10 @@
 # Story Backlog
 
-Populated from the CafeMood Map spec (intake #1, 2026-07-06). All stories are
-`planned`; none are selected for implementation yet. Design source: extracted
-handoff under `docs/design/project/` (see `docs/product/overview.md`); cloud
-original on [claude.ai/design](https://claude.ai/design/p/c1d6d55d-c7e3-4bc5-b67a-6b50416f5dbd?file=CafeMood+Complete+App.dc.html).
+Populated from the CafeMood Map spec (intake #1, 2026-07-06). US-001 through
+US-010 are `implemented`; US-011 through US-028 remain `planned`. Design
+source: extracted handoff under `docs/design/project/` (see
+`docs/product/overview.md`); cloud original on
+[claude.ai/design](https://claude.ai/design/p/c1d6d55d-c7e3-4bc5-b67a-6b50416f5dbd?file=CafeMood+Complete+App.dc.html).
 
 Design gaps: none as of 2026-07-06. A closer audit showed several "gaps" were
 false (B3 includes the AI Result, E3/E4 include their results, Section H is the
@@ -21,15 +22,16 @@ commitments.
 
 | Epic | Description | Spec source | Stories | Status |
 | --- | --- | --- | --- | --- |
-| E01-design-system | Tokens, component kit, map pin + sheet shells | Batch 0 | US-001..003 | sliced |
-| E02-onboarding-auth | Splash, welcome, intro, auth, location, taste | Batch 1 | US-004..007 | sliced |
-| E03-map-discovery | Map home, sheet, search, AI finder, filters, states | Batch 2 | US-008..013 | sliced |
-| E04-cafe-detail-save | Detail, gallery, insight, save, share | Batch 3 | US-014..018 | sliced |
-| E05-planning-contribution | Routes, work/date planners, check-in, clips | Batch 4 | US-019..022 | sliced |
-| E06-library-profile | Saved, collections, taste, profile, states, tabs | Batch 5 | US-023..027 | sliced |
-| E07-qa-demo-polish | Full QA, prototype wiring, demo polish | Batch 6 | US-028 | sliced |
+| E01-design-system | Tokens, component kit, map pin + sheet shells | Batch 0 | US-001..003 | implemented |
+| E02-onboarding-auth | Splash, welcome, intro, auth, location, taste | Batch 1 | US-004..007 | implemented |
+| E03-map-discovery | Map home, sheet, search, AI finder, filters, states | Batch 2 | US-008..013 | in progress: US-008..010 implemented; US-011..013 planned |
+| E04-cafe-detail-save | Detail, gallery, insight, save, share | Batch 3 | US-014..018 | planned |
+| E05-planning-contribution | Routes, work/date planners, check-in, clips | Batch 4 | US-019..022 | planned |
+| E06-library-profile | Saved, collections, taste, profile, states, tabs | Batch 5 | US-023..027 | planned |
+| E07-qa-demo-polish | Full QA, prototype wiring, demo polish | Batch 6 | US-028 | planned |
 
-Suggested implementation order: E01 first (everything depends on tokens and
-components), then E02/E03 in parallel-ish, E04, E05, E06, E07 last. High-risk
-stories (US-005 auth, US-008 map provider, US-011 AI provider) must expand to
-the high-risk template and confirm decision 0008 before implementation.
+Suggested implementation order: continue E03 with US-011, then US-012 and
+US-013 before moving to E04, E05, E06, and E07. High-risk provider stories that
+remain planned, such as US-011 AI provider work, must expand to the high-risk
+template and confirm or supersede decision 0008 before real provider
+implementation.
