@@ -4,9 +4,9 @@ A map-first, visual-first mobile app for discovering coffee shops by **vibe,
 not just rating** — for work, dates, photos, quiet time, or café-hopping
 routes.
 
-> **Status: documentation & design phase.** The product spec is decomposed,
-> all screens are designed, and 28 stories are queued. Implementation has not
-> started — the app currently renders a placeholder screen.
+> **Status: implementation in progress.** The product spec is decomposed, all
+> screens are designed, and US-001 through US-010 are implemented. US-011 is
+> the next planned story.
 
 ## Where Things Stand
 
@@ -14,9 +14,9 @@ routes.
 | --- | --- |
 | Product contracts | 7 docs in `docs/product/` (overview, design system, 5 domains) |
 | Design | 100% screen coverage in `docs/design/project/` (4 `.dc.html` files); mirrored to the claude.ai "CafeMood Map" design project |
-| Stories | 28 planned across epics E01–E07 (`docs/stories/epics/`) |
+| Stories | 10 implemented, 18 planned across epics E01–E07 (`docs/stories/epics/`) |
 | Tech stack | Proposed, not accepted — `docs/decisions/0008-cafemood-tech-stack.md` |
-| Implementation | Not started; E01 (design tokens + component kit) is the first slice |
+| Implementation | US-001..US-010 complete: design system, onboarding/auth/location/taste, map home, bottom sheet states, and search |
 
 ## Design Source
 
