@@ -39,6 +39,7 @@ type CafeBottomSheetShellProps = {
   floating?: boolean;
   saved?: boolean;
   onSave?: () => void;
+  onOpenDetail?: () => void;
 };
 
 const snapHeight = {
@@ -82,6 +83,7 @@ export function CafeBottomSheetShell({
   floating = false,
   saved = false,
   onSave,
+  onOpenDetail,
 }: CafeBottomSheetShellProps) {
   const height = useDerivedValue(
     () => withTiming(snapHeight[snapPoint], { duration: 220 }),
@@ -196,7 +198,17 @@ export function CafeBottomSheetShell({
             }}
           />
         </View>
-        <View style={{ flex: 1, minWidth: 0 }}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Open ${name} details`}
+          disabled={!onOpenDetail}
+          onPress={onOpenDetail}
+          style={({ pressed }) => ({
+            flex: 1,
+            minWidth: 0,
+            opacity: pressed && onOpenDetail ? 0.72 : 1,
+          })}
+        >
           <Text
             numberOfLines={1}
             style={{
@@ -216,7 +228,7 @@ export function CafeBottomSheetShell({
           >
             {showHalf ? meta : vibe}
           </Text>
-        </View>
+        </Pressable>
         <View
           style={{
             flexDirection: "row",
