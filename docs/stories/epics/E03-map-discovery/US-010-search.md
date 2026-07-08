@@ -70,3 +70,5 @@ When updating durable proof status, use numeric booleans:
   `/tmp/cafemood-ios-simulator-us010-search.png`.
 - Search input alignment follow-up captured at
   `/tmp/cafemood-ios-simulator-us010-input-align.png`.
+- Search and button control heights are tokenized in `theme.sizing` instead of
+  hard-coded in the search UI.

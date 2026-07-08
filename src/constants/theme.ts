@@ -128,6 +128,12 @@ export const theme = {
     xxl: 40,
     xxxl: 56,
   },
+  sizing: {
+    minimumTouchTarget: 44,
+    compactControl: 46,
+    control: 52,
+    searchControl: 52,
+  },
   radius: {
     chip: 999,
     button: 18,
@@ -164,6 +170,7 @@ export const Colors = {
 } as const;
 
 export const Spacing = theme.spacing;
+export const Sizing = theme.sizing;
 export const Fonts = theme.fonts.family;
 export const Typography = theme.typography;
 export const Radius = theme.radius;

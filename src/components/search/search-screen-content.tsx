@@ -40,7 +40,7 @@ export function SearchScreenContent() {
         <View
           style={{
             flex: 1,
-            minHeight: 50,
+            minHeight: theme.sizing.searchControl,
             flexDirection: "row",
             alignItems: "center",
             gap: theme.spacing.sm,
@@ -71,7 +71,7 @@ export function SearchScreenContent() {
               fontFamily: theme.typography.bodySmall.fontFamily,
               fontSize: theme.typography.bodySmall.fontSize,
               flex: 1,
-              height: 50,
+              height: theme.sizing.searchControl,
               color: theme.colors.text.espresso900,
               includeFontPadding: false,
               paddingHorizontal: 0,
@@ -84,7 +84,7 @@ export function SearchScreenContent() {
           accessibilityRole="button"
           onPress={() => router.back()}
           style={({ pressed }) => ({
-            minHeight: 44,
+            minHeight: theme.sizing.minimumTouchTarget,
             justifyContent: "center",
             opacity: pressed ? 0.72 : 1,
           })}
@@ -452,7 +452,7 @@ function SearchEmptyState({ onReset }: { onReset: () => void }) {
         accessibilityRole="button"
         onPress={onReset}
         style={({ pressed }) => ({
-          minHeight: 46,
+          minHeight: theme.sizing.compactControl,
           justifyContent: "center",
           paddingHorizontal: theme.spacing.lg,
           borderRadius: theme.radius.button,

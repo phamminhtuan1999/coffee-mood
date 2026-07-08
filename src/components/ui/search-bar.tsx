@@ -19,7 +19,7 @@ export function SearchBar({
   return (
     <View
       style={{
-        minHeight: 52,
+        minHeight: theme.sizing.searchControl,
         flexDirection: "row",
         alignItems: "center",
         gap: theme.spacing.xs,
@@ -53,7 +53,7 @@ export function SearchBar({
           fontFamily: theme.typography.bodySmall.fontFamily,
           fontSize: theme.typography.bodySmall.fontSize,
           flex: 1,
-          height: 52,
+          height: theme.sizing.searchControl,
           color: theme.colors.text.espresso900,
           includeFontPadding: false,
           paddingHorizontal: 0,
