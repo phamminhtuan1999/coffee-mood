@@ -83,3 +83,12 @@ When updating durable proof status, use numeric booleans:
   contract while removing expensive card/search/icon shadows from the scrolling
   showcase surfaces. Fresh simulator screenshot captured at
   `/tmp/cafemood-ios-simulator-us002-scroll-fix-fresh.png`.
+- 2026-07-07 proof-gap pass (intake #2, decision 0009): component tests added
+  under `src/components/ui/__tests__/` (`button.test.tsx`, `chip.test.tsx`,
+  `ui-kit.test.tsx`) covering button variants/pressed/disabled behavior, chip
+  selected/disabled states and the 13px label, and render contracts for search
+  bar, score badge tones, AI summary card, cafe image card, collection card,
+  empty state card, filter row, loading skeleton, map preview surface, and
+  route stop card. `LoadingSkeleton` now sets `accessible` so its declared
+  progressbar role is exposed to assistive tech. Unit proof recorded with
+  `story update --id US-002 --unit 1`; `story verify US-002` passes.
