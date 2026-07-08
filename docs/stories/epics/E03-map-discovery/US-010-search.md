@@ -68,3 +68,5 @@ When updating durable proof status, use numeric booleans:
 - `scripts/bin/harness-cli story verify US-010` passed.
 - iPhone simulator smoke captured at
   `/tmp/cafemood-ios-simulator-us010-search.png`.
+- Search input alignment follow-up captured at
+  `/tmp/cafemood-ios-simulator-us010-input-align.png`.
