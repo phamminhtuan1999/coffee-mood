@@ -48,6 +48,7 @@ export const theme = {
       skeletonBase: "#EFE6D8",
       skeletonHighlight: "#F6F0E5",
       overlayDark: "rgba(36, 26, 20, 0.58)",
+      matchScore: "rgba(111, 139, 94, 0.14)",
     },
     score: {
       great: "#6F8B5E",
@@ -139,6 +140,7 @@ export const theme = {
     card: "0 16px 40px rgba(36, 26, 20, 0.14)",
     pin: "0 8px 22px rgba(36, 26, 20, 0.20)",
     button: "0 6px 16px rgba(36, 26, 20, 0.10)",
+    searchCard: "0 8px 22px rgba(36, 26, 20, 0.06)",
   },
 } as const;
 
