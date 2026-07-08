@@ -1,8 +1,8 @@
 import * as Location from "expo-location";
 import { Image } from "expo-image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import type { Href } from "expo-router";
 import {
   Animated,
@@ -17,15 +17,26 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   CafeBottomSheetShell,
+  CafeButton,
   CafeImageCard,
   ClusteredPhotoPin,
   CollectionCard,
+  EmptyStateCard,
+  LoadingSkeleton,
   MapPreviewSurface,
   PhotoMapPin,
   VibeChip,
 } from "@/components/ui";
 import type { CafeBottomSheetSnapPoint } from "@/components/ui";
 import { theme } from "@/constants/theme";
+import { cafeMapPins } from "@/data/map-pins";
+import type { CafeMapPin } from "@/data/map-pins";
+import { activeMapFilterCount, applyMapFilters } from "@/utils/map-filters";
+import {
+  getMapFilters,
+  resetMapFilters,
+  subscribeMapFilters,
+} from "@/utils/map-filters-store";
 import {
   AuthSession,
   AuthSessionProvider,
@@ -124,29 +135,21 @@ const priceOptions: PricePreference[] = ["$", "$$", "$$$"];
 
 const searchRoute = "/search" as Href;
 const aiFinderRoute = "/ai-finder" as Href;
+const filtersRoute = "/filters" as Href;
 
-type CafeMapPinTone = "terracotta" | "latte" | "olive";
+export const MAP_LOADING_MS = 900;
 
-type CafeMapPin = {
-  id: string;
-  name: string;
-  meta: string;
-  score: string;
-  tags: string[];
-  scores: { label: string; value: string }[];
-  summary: string;
-  tone: CafeMapPinTone;
-  vibe: string;
-  photoCount: number;
-  whyItMatches: string[];
-  peopleLove: string[];
-  watchOutFor: string[];
-  saved?: boolean;
-  top?: number;
-  left?: number;
-  right?: number;
-  bottom?: number;
-};
+// QA override for deterministic simulator smoke of discovery states
+// (same deep-link pattern as the ai-finder ?prompt= param).
+type DiscoveryStateOverride = "loading" | "empty" | "denied";
+
+function parseDiscoveryOverride(
+  value: string | string[] | undefined,
+): DiscoveryStateOverride | undefined {
+  return value === "loading" || value === "empty" || value === "denied"
+    ? value
+    : undefined;
+}
 
 const mapHomeChips = [
   "Work",
@@ -160,114 +163,9 @@ const mapHomeChips = [
 
 type MapHomeChip = (typeof mapHomeChips)[number];
 
-const cafeMapPins: CafeMapPin[] = [
-  {
-    id: "mostra",
-    name: "Mostra Coffee",
-    meta: "North Park · 0.3 mi",
-    score: "9.1",
-    tags: ["Aesthetic", "Specialty Coffee", "Good Latte"],
-    scores: [
-      { label: "Aesthetic", value: "9.1" },
-      { label: "Coffee", value: "8.8" },
-      { label: "Work", value: "6.5" },
-    ],
-    summary:
-      "Great coffee and cozy interior. Better for casual hangout or photos than long work sessions.",
-    tone: "terracotta",
-    vibe: "Cozy corner cafe for slow mornings",
-    photoCount: 24,
-    whyItMatches: [
-      "Aesthetic score is high enough for photo-focused cafe hopping.",
-      "Specialty coffee and good latte tags match your taste profile.",
-      "North Park distance keeps it easy for a short morning stop.",
-    ],
-    peopleLove: ["Horchata latte", "Window light", "Cozy interior"],
-    watchOutFor: ["Limited outlets", "Busy after 10am"],
-    top: 224,
-    left: 76,
-  },
-  {
-    id: "marigold",
-    name: "Marigold & Oak",
-    meta: "North Park · 0.5 mi",
-    score: "8.9",
-    tags: ["Quiet", "Work", "Open Now"],
-    scores: [
-      { label: "Quiet", value: "8.9" },
-      { label: "Coffee", value: "8.4" },
-      { label: "Work", value: "8.7" },
-    ],
-    summary:
-      "Soft tables, lower music, and reliable outlets make this a stronger work pick.",
-    tone: "latte",
-    vibe: "Quiet work cafe with soft tables",
-    photoCount: 18,
-    whyItMatches: [
-      "Quiet and Work tags match focused sessions.",
-      "Open Now keeps it available for immediate planning.",
-      "Lower crowd energy makes it better for laptop time.",
-    ],
-    peopleLove: ["Reliable outlets", "Low music", "Long tables"],
-    watchOutFor: ["Less photogenic", "Small pastry case"],
-    top: 318,
-    right: 54,
-  },
-  {
-    id: "terrace",
-    name: "Terrace & Thistle",
-    meta: "South Park · 0.7 mi",
-    score: "8.4",
-    tags: ["Outdoor", "Date", "Open Now"],
-    scores: [
-      { label: "Outdoor", value: "8.6" },
-      { label: "Coffee", value: "8.1" },
-      { label: "Date", value: "8.4" },
-    ],
-    summary:
-      "Plant-filled patio seating and a warm afternoon crowd fit outdoor hangs.",
-    tone: "olive",
-    vibe: "Plant-filled patio for outdoor hangs",
-    photoCount: 16,
-    whyItMatches: [
-      "Outdoor and Date tags fit social cafe plans.",
-      "Patio seating gives more breathing room on warm days.",
-      "A softer crowd makes it better for slow conversations.",
-    ],
-    peopleLove: ["Patio plants", "Golden hour", "Date vibe"],
-    watchOutFor: ["Weather dependent", "Limited shade"],
-    bottom: 266,
-    left: 128,
-  },
-  {
-    id: "hearth",
-    name: "Hearth Supply Co.",
-    meta: "University Heights · 0.8 mi",
-    score: "7.8",
-    tags: ["Work", "Parking"],
-    scores: [
-      { label: "Parking", value: "8.0" },
-      { label: "Coffee", value: "7.9" },
-      { label: "Work", value: "7.8" },
-    ],
-    summary:
-      "Easier parking and long tables make this practical for focused mornings.",
-    tone: "latte",
-    vibe: "Practical work stop with easier parking",
-    photoCount: 12,
-    whyItMatches: [
-      "Parking and Work tags make it useful for task-driven visits.",
-      "Long tables support longer focus blocks.",
-      "University Heights placement expands the map beyond North Park.",
-    ],
-    peopleLove: ["Street parking", "Big tables", "Calm mornings"],
-    watchOutFor: ["Lower aesthetic score", "Fills up at lunch"],
-    bottom: 344,
-    right: 122,
-  },
-];
-
 export default function Index() {
+  const params = useLocalSearchParams<{ discovery?: string }>();
+  const discoveryOverride = parseDiscoveryOverride(params.discovery);
   const [authSession, setAuthSession] = useState<AuthSession | null>(() =>
     loadAuthSession(),
   );
@@ -401,7 +299,9 @@ export default function Index() {
       <MainMapHandoff
         profile={tasteProfile}
         selection={locationSelection}
+        stateOverride={discoveryOverride}
         onEditTaste={() => setStep("taste-onboarding")}
+        onChooseLocation={() => setStep("manual-location")}
       />
     );
   }
@@ -1132,13 +1032,17 @@ function TasteOnboardingScreen({
 type MainMapHandoffProps = {
   profile: TasteProfile | null;
   selection: LocationSelection | null;
+  stateOverride?: DiscoveryStateOverride;
   onEditTaste: () => void;
+  onChooseLocation: () => void;
 };
 
 function MainMapHandoff({
   profile,
   selection,
+  stateOverride,
   onEditTaste,
+  onChooseLocation,
 }: MainMapHandoffProps) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -1147,12 +1051,59 @@ function MainMapHandoff({
   const [sheetSnapPoint, setSheetSnapPoint] =
     useState<CafeBottomSheetSnapPoint>("half");
   const [savedCafeIds, setSavedCafeIds] = useState<string[]>([]);
+  const [mapPhase, setMapPhase] = useState<"loading" | "ready">("loading");
+  const [locationDenied, setLocationDenied] = useState(
+    stateOverride === "denied",
+  );
+  const [forceEmpty, setForceEmpty] = useState(stateOverride === "empty");
 
-  const filteredPins = filterCafePins(activeChip);
+  useEffect(() => {
+    if (stateOverride === "loading") {
+      return;
+    }
+
+    const timer = setTimeout(() => setMapPhase("ready"), MAP_LOADING_MS);
+
+    return () => clearTimeout(timer);
+  }, [stateOverride]);
+
+  useEffect(() => {
+    if (stateOverride || selection) {
+      return;
+    }
+
+    let cancelled = false;
+
+    Location.getForegroundPermissionsAsync()
+      .then((permission) => {
+        if (!cancelled && permission.status === "denied") {
+          setLocationDenied(true);
+        }
+      })
+      .catch(() => {
+        // Permission state stays unknown; keep the map usable.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selection, stateOverride]);
+
+  const mapFilters = useSyncExternalStore(subscribeMapFilters, getMapFilters);
+  const activeFilters = activeMapFilterCount(mapFilters);
+  const filteredPins = forceEmpty
+    ? []
+    : applyMapFilters(filterCafePins(activeChip), mapFilters);
   const selectedCafe =
-    cafeMapPins.find((cafe) => cafe.id === selectedCafeId) ?? cafeMapPins[0];
-  const isSelectedCafeSaved =
-    savedCafeIds.includes(selectedCafe.id) || selectedCafe.saved === true;
+    filteredPins.find((cafe) => cafe.id === selectedCafeId) ??
+    filteredPins[0] ??
+    null;
+  const isSelectedCafeSaved = selectedCafe
+    ? savedCafeIds.includes(selectedCafe.id) || selectedCafe.saved === true
+    : false;
+  const isLoading = mapPhase === "loading";
+  const showEmptyState =
+    !isLoading && !locationDenied && filteredPins.length === 0;
 
   const selectCafe = (cafeId: string) => {
     setSelectedCafeId(cafeId);
@@ -1161,13 +1112,36 @@ function MainMapHandoff({
 
   const selectChip = (chip: MapHomeChip) => {
     const nextChip = activeChip === chip ? null : chip;
-    const nextPins = filterCafePins(nextChip);
+    const nextPins = applyMapFilters(filterCafePins(nextChip), mapFilters);
 
     setActiveChip(nextChip);
     selectCafe(nextPins[0]?.id ?? cafeMapPins[0].id);
   };
 
+  const expandSearch = () => {
+    setForceEmpty(false);
+    setActiveChip(null);
+    resetMapFilters();
+    selectCafe(cafeMapPins[0].id);
+  };
+
+  const enableLocation = async () => {
+    try {
+      const permission = await Location.requestForegroundPermissionsAsync();
+
+      if (permission.status === "granted") {
+        setLocationDenied(false);
+      }
+    } catch {
+      // Keep the recovery card; Choose Location stays available.
+    }
+  };
+
   const toggleSelectedCafeSave = () => {
+    if (!selectedCafe) {
+      return;
+    }
+
     setSavedCafeIds((current) =>
       current.includes(selectedCafe.id)
         ? current.filter((id) => id !== selectedCafe.id)
@@ -1184,34 +1158,42 @@ function MainMapHandoff({
       }}
     >
       <MapPreviewSurface>
-        {filteredPins.map((cafe) => (
-          <View
-            key={cafe.id}
-            style={{
-              position: "absolute",
-              top: cafe.top,
-              left: cafe.left,
-              right: cafe.right,
-              bottom: cafe.bottom,
-            }}
-          >
-            <PhotoMapPin
-              label={cafe.name}
-              score={cafe.score}
-              selected={selectedCafe.id === cafe.id}
-              saved={savedCafeIds.includes(cafe.id) || cafe.saved}
-              tone={cafe.tone}
-              onPress={() => selectCafe(cafe.id)}
-            />
-          </View>
-        ))}
-        <View style={{ position: "absolute", top: 420, right: 42 }}>
-          <ClusteredPhotoPin
-            count={3}
-            label="Cluster of cafes near University Heights"
-            onPress={() => selectCafe("hearth")}
-          />
-        </View>
+        {isLoading ? (
+          <SkeletonMapPins />
+        ) : (
+          <>
+            {filteredPins.map((cafe) => (
+              <View
+                key={cafe.id}
+                style={{
+                  position: "absolute",
+                  top: cafe.top,
+                  left: cafe.left,
+                  right: cafe.right,
+                  bottom: cafe.bottom,
+                }}
+              >
+                <PhotoMapPin
+                  label={cafe.name}
+                  score={cafe.score}
+                  selected={selectedCafe?.id === cafe.id}
+                  saved={savedCafeIds.includes(cafe.id) || cafe.saved}
+                  tone={cafe.tone}
+                  onPress={() => selectCafe(cafe.id)}
+                />
+              </View>
+            ))}
+            {filteredPins.length > 0 ? (
+              <View style={{ position: "absolute", top: 420, right: 42 }}>
+                <ClusteredPhotoPin
+                  count={3}
+                  label="Cluster of cafes near University Heights"
+                  onPress={() => selectCafe("hearth")}
+                />
+              </View>
+            ) : null}
+          </>
+        )}
         <View
           pointerEvents="none"
           style={{
@@ -1265,25 +1247,67 @@ function MainMapHandoff({
         >
           Search cafes, vibes, or neighborhoods
         </Text>
-        <View
-          style={{
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={
+            activeFilters > 0
+              ? `Tune your map filters, ${activeFilters} active`
+              : "Tune your map filters"
+          }
+          onPress={() => router.push(filtersRoute)}
+          style={({ pressed }) => ({
             width: 36,
             height: 36,
             alignItems: "center",
             justifyContent: "center",
             borderRadius: theme.radius.photoPin,
-            backgroundColor: theme.colors.surface.pressed,
-          }}
+            backgroundColor:
+              activeFilters > 0
+                ? theme.colors.text.espresso900
+                : theme.colors.surface.pressed,
+            opacity: pressed ? 0.82 : 1,
+          })}
         >
           <Image
             source="sf:slider.horizontal.3"
             style={{
               width: 17,
               height: 17,
-              tintColor: theme.colors.text.espresso700,
+              tintColor:
+                activeFilters > 0
+                  ? theme.colors.background.cream50
+                  : theme.colors.text.espresso700,
             }}
           />
-        </View>
+          {activeFilters > 0 ? (
+            <View
+              style={{
+                position: "absolute",
+                top: -4,
+                right: -4,
+                minWidth: 17,
+                height: 17,
+                alignItems: "center",
+                justifyContent: "center",
+                paddingHorizontal: theme.spacing.xxs,
+                borderRadius: theme.radius.photoPin,
+                backgroundColor: theme.colors.brand.terracotta,
+              }}
+            >
+              <Text
+                style={{
+                  ...theme.typography.caption,
+                  fontSize: 10,
+                  lineHeight: 12,
+                  fontFamily: theme.fonts.family.sansBold,
+                  color: theme.colors.background.cream50,
+                }}
+              >
+                {activeFilters}
+              </Text>
+            </View>
+          ) : null}
+        </Pressable>
       </Pressable>
 
       <ScrollView
@@ -1378,20 +1402,186 @@ function MainMapHandoff({
         </Text>
       </Pressable>
 
-      <MapHomePreviewSheet
-        cafe={selectedCafe}
-        locationLabel={selection?.label ?? "Current area"}
-        profileLabel={profile?.skipped ? "Open taste" : tasteProfileSummary(profile)}
-        saved={isSelectedCafeSaved}
-        snapPoint={sheetSnapPoint}
-        onSnapPointChange={setSheetSnapPoint}
-        onSave={toggleSelectedCafeSave}
-      />
+      {isLoading ? (
+        <View
+          style={{
+            position: "absolute",
+            left: theme.spacing.sm,
+            right: theme.spacing.sm,
+            bottom: 100,
+            zIndex: 20,
+          }}
+        >
+          <LoadingSkeleton title="Loading map cafes" hint="Pouring the map…" />
+        </View>
+      ) : null}
+
+      {locationDenied ? (
+        <View
+          style={{
+            position: "absolute",
+            left: theme.spacing.sm,
+            right: theme.spacing.sm,
+            bottom: 100,
+            zIndex: 20,
+          }}
+        >
+          <LocationDeniedCard
+            onChooseLocation={onChooseLocation}
+            onEnableLocation={enableLocation}
+          />
+        </View>
+      ) : null}
+
+      {showEmptyState ? (
+        <View
+          style={{
+            position: "absolute",
+            left: theme.spacing.sm,
+            right: theme.spacing.sm,
+            bottom: 100,
+            zIndex: 20,
+          }}
+        >
+          <EmptyStateCard
+            title="No cafe vibes found nearby."
+            copy="Try expanding your distance or choosing another neighborhood."
+            cta="Expand Search"
+            onCtaPress={expandSearch}
+          />
+        </View>
+      ) : null}
+
+      {!isLoading && !locationDenied && selectedCafe ? (
+        <MapHomePreviewSheet
+          cafe={selectedCafe}
+          locationLabel={selection?.label ?? "Current area"}
+          profileLabel={profile?.skipped ? "Open taste" : tasteProfileSummary(profile)}
+          saved={isSelectedCafeSaved}
+          snapPoint={sheetSnapPoint}
+          onSnapPointChange={setSheetSnapPoint}
+          onSave={toggleSelectedCafeSave}
+        />
+      ) : null}
 
       <MapTabBar
         bottomInset={insets.bottom}
         onEditTaste={onEditTaste}
       />
+    </View>
+  );
+}
+
+function SkeletonMapPins() {
+  return (
+    <View
+      accessible
+      accessibilityRole="progressbar"
+      accessibilityLabel="Loading cafes on the map"
+      style={{ position: "absolute", inset: 0 }}
+    >
+      {cafeMapPins.map((cafe) => (
+        <View
+          key={cafe.id}
+          style={{
+            position: "absolute",
+            top: cafe.top,
+            left: cafe.left,
+            right: cafe.right,
+            bottom: cafe.bottom,
+          }}
+        >
+          <View
+            style={{
+              width: 46,
+              height: 46,
+              borderRadius: theme.radius.photoPin,
+              borderWidth: 3,
+              borderColor: theme.colors.background.cream50,
+              backgroundColor: theme.colors.surface.skeletonBase,
+              boxShadow: theme.shadows.pin,
+            }}
+          />
+        </View>
+      ))}
+    </View>
+  );
+}
+
+type LocationDeniedCardProps = {
+  onChooseLocation: () => void;
+  onEnableLocation: () => void;
+};
+
+function LocationDeniedCard({
+  onChooseLocation,
+  onEnableLocation,
+}: LocationDeniedCardProps) {
+  return (
+    <View
+      style={{
+        alignItems: "center",
+        gap: theme.spacing.sm,
+        padding: theme.spacing.lg,
+        borderRadius: theme.radius.card,
+        borderCurve: "continuous",
+        backgroundColor: theme.colors.background.cream50,
+      }}
+    >
+      <View
+        style={{
+          width: 46,
+          height: 46,
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: theme.radius.photoPin,
+          backgroundColor: theme.colors.surface.cautionSoft,
+        }}
+      >
+        <Text
+          style={{
+            ...theme.typography.sectionTitle,
+            fontFamily: theme.fonts.family.sansBold,
+            color: theme.colors.score.crowded,
+          }}
+        >
+          !
+        </Text>
+      </View>
+      <Text
+        style={{
+          ...theme.typography.sectionTitle,
+          fontFamily: theme.fonts.family.serifMedium,
+          color: theme.colors.text.espresso900,
+          textAlign: "center",
+        }}
+      >
+        Location is off.
+      </Text>
+      <Text
+        style={{
+          ...theme.typography.caption,
+          color: theme.colors.text.muted,
+          textAlign: "center",
+        }}
+      >
+        Turn on location, or pick a neighborhood manually — both work.
+      </Text>
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          gap: theme.spacing.xs,
+        }}
+      >
+        <CafeButton
+          label="Choose Location"
+          variant="secondary"
+          onPress={onChooseLocation}
+        />
+        <CafeButton label="Enable Location" onPress={onEnableLocation} />
+      </View>
     </View>
   );
 }
