@@ -77,3 +77,11 @@ When updating durable proof status, use numeric booleans:
   overlap. Screenshot captured at `/tmp/cafemood-ios-simulator-us001.png`.
 - `rg` scan found hard-coded colors, rgba values, shadows, and font sizes only
   inside `src/constants/theme.ts`, the intended token source.
+- 2026-07-07 proof-gap pass (intake #2, decision 0009): jest-expo +
+  React Native Testing Library installed; `src/constants/__tests__/theme.test.ts`
+  covers the radii/typography/sizing/spacing contract, color value validity,
+  alias-export sync, and a durable no-hard-coded-colors-outside-theme scan
+  (replacing the one-off `rg` check). Unit proof recorded with
+  `story update --id US-001 --unit 1`. Verify command configured as
+  `npm run lint && npx tsc --noEmit && npx jest src/constants`;
+  `story verify US-001` passes.

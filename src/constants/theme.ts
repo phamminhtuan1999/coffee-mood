@@ -49,6 +49,8 @@ export const theme = {
       skeletonHighlight: "#F6F0E5",
       overlayDark: "rgba(36, 26, 20, 0.58)",
       matchScore: "rgba(111, 139, 94, 0.14)",
+      positiveSoft: "rgba(111, 139, 94, 0.12)",
+      cautionSoft: "rgba(199, 110, 79, 0.12)",
     },
     score: {
       great: "#6F8B5E",

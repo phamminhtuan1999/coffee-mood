@@ -502,8 +502,8 @@ function SheetPill({
         borderRadius: theme.radius.chip,
         backgroundColor:
           tone === "positive"
-            ? "rgba(111, 139, 94, 0.12)"
-            : "rgba(199, 110, 79, 0.12)",
+            ? theme.colors.surface.positiveSoft
+            : theme.colors.surface.cautionSoft,
       }}
     >
       <Text

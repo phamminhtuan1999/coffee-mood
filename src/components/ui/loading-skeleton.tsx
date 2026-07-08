@@ -10,6 +10,7 @@ type LoadingSkeletonProps = {
 export function LoadingSkeleton({ title, hint }: LoadingSkeletonProps) {
   return (
     <View
+      accessible
       accessibilityLabel={title}
       accessibilityRole="progressbar"
       style={{
