@@ -759,7 +759,7 @@ function LocationPrimerScreen({
           accessibilityRole="button"
           onPress={onChooseManually}
           style={({ pressed }) => ({
-            minHeight: 52,
+            minHeight: theme.sizing.control,
             alignItems: "center",
             justifyContent: "center",
             padding: theme.spacing.md,
@@ -843,7 +843,7 @@ function ManualLocationScreen({
         <View
           style={{
             flex: 1,
-            minHeight: 50,
+            minHeight: theme.sizing.searchControl,
             flexDirection: "row",
             alignItems: "center",
             gap: theme.spacing.sm,
@@ -869,11 +869,15 @@ function ManualLocationScreen({
             placeholderTextColor={theme.colors.text.muted}
             autoCapitalize="words"
             style={{
-              ...theme.typography.bodySmall,
+              fontFamily: theme.typography.bodySmall.fontFamily,
+              fontSize: theme.typography.bodySmall.fontSize,
               flex: 1,
-              minHeight: 46,
+              height: theme.sizing.searchControl,
               color: theme.colors.text.espresso900,
-              padding: 0,
+              includeFontPadding: false,
+              paddingHorizontal: 0,
+              paddingVertical: 0,
+              textAlignVertical: "center",
             }}
           />
         </View>
@@ -939,7 +943,7 @@ function ManualLocationScreen({
         accessibilityRole="button"
         onPress={onUseCurrentLocation}
         style={({ pressed }) => ({
-          minHeight: 52,
+          minHeight: theme.sizing.control,
           alignItems: "center",
           justifyContent: "center",
           marginTop: theme.spacing.xl,
@@ -1230,7 +1234,7 @@ function MainMapHandoff({
           top: Math.max(insets.top + theme.spacing.md, 64),
           left: theme.spacing.screen,
           right: theme.spacing.screen,
-          minHeight: 52,
+          minHeight: theme.sizing.searchControl,
           flexDirection: "row",
           alignItems: "center",
           gap: theme.spacing.sm,
@@ -1344,7 +1348,7 @@ function MainMapHandoff({
           position: "absolute",
           right: theme.spacing.md,
           bottom: 420,
-          minHeight: 46,
+          minHeight: theme.sizing.compactControl,
           flexDirection: "row",
           alignItems: "center",
           gap: theme.spacing.xs,
@@ -1915,7 +1919,7 @@ function AuthScreen({ onProvider, onEmail, onGuest }: AuthScreenProps) {
         accessibilityRole="button"
         onPress={onGuest}
         style={({ pressed }) => ({
-          minHeight: 52,
+          minHeight: theme.sizing.control,
           alignItems: "center",
           justifyContent: "center",
           padding: theme.spacing.md,
@@ -2548,7 +2552,7 @@ function ActionButton({
       accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => ({
-        minHeight: 52,
+        minHeight: theme.sizing.control,
         alignItems: "center",
         justifyContent: "center",
         paddingHorizontal: theme.spacing.lg,
