@@ -56,8 +56,10 @@ export const theme = {
     },
     score: {
       great: "#6F8B5E",
+      greatInk: "#445238",
       good: "#B88A44",
       crowded: "#C76E4F",
+      crowdedInk: "#8C4A31",
     },
     map: {
       road: "#D8BFA5",
