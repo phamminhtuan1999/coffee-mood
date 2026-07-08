@@ -437,7 +437,10 @@ function LoadedCafeDetail({
           >
             <TextAction label="Share" />
             <TextActionDivider />
-            <TextAction label="View Photos" />
+            <TextAction
+              label="View Photos"
+              onPress={() => router.push(`/cafe/${pin.id}/gallery`)}
+            />
             <TextActionDivider />
             <TextAction label="Open in Google Maps" />
           </View>
@@ -983,13 +986,14 @@ function SimilarCafesRow({ similar }: SimilarCafesRowProps) {
 
 type TextActionProps = {
   label: string;
+  onPress?: () => void;
 };
 
-function TextAction({ label }: TextActionProps) {
+function TextAction({ label, onPress }: TextActionProps) {
   return (
     <Pressable
       accessibilityRole="button"
-      onPress={undefined}
+      onPress={onPress}
       style={({ pressed }) => ({
         minHeight: theme.sizing.minimumTouchTarget,
         justifyContent: "center",

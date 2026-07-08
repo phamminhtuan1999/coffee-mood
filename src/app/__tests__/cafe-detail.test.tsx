@@ -120,6 +120,15 @@ describe("cafe detail content blocks", () => {
 
     expect(mockPush).toHaveBeenCalledWith("/cafe/marigold");
   });
+
+  it("opens the gallery from View Photos", async () => {
+    await render(<CafeDetailScreen />);
+    await settleLoading();
+
+    await fireEvent.press(screen.getByText("View Photos"));
+
+    expect(mockPush).toHaveBeenCalledWith("/cafe/mostra/gallery");
+  });
 });
 
 describe("cafe detail error state", () => {
