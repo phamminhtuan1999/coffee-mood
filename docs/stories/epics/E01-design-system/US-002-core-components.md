@@ -83,7 +83,7 @@ When updating durable proof status, use numeric booleans:
   contract while removing expensive card/search/icon shadows from the scrolling
   showcase surfaces. Fresh simulator screenshot captured at
   `/tmp/cafemood-ios-simulator-us002-scroll-fix-fresh.png`.
-- 2026-07-07 proof-gap pass (intake #2, decision 0009): component tests added
+- 2026-07-07 proof-gap pass (intake #2, decision 0011): component tests added
   under `src/components/ui/__tests__/` (`button.test.tsx`, `chip.test.tsx`,
   `ui-kit.test.tsx`) covering button variants/pressed/disabled behavior, chip
   selected/disabled states and the 13px label, and render contracts for search

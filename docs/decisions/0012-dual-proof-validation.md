@@ -1,4 +1,4 @@
-# 0010 Dual Proof: Automated Tests Plus Manual Simulator Smoke
+# 0012 Dual Proof: Automated Tests Plus Manual Simulator Smoke
 
 Date: 2026-07-07
 
@@ -8,7 +8,7 @@ Accepted
 
 ## Context
 
-Before decision 0009 the only per-story completion proof was a manual smoke
+Before decision 0011 the only per-story completion proof was a manual smoke
 pass on the iPhone 15 simulator. With jest-expo in place there is a risk that
 automated tests quietly become the whole proof and the manual device pass
 stops happening. The user directed (intervention #3) that automation is

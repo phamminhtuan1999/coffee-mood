@@ -20,7 +20,7 @@ navigation affordances.
 
 - `docs/product/discovery.md`
 - `docs/decisions/0008-cafemood-tech-stack.md`
-- `docs/decisions/0009-defer-map-provider-for-us-008.md`
+- `docs/decisions/0010-defer-map-provider-for-us-008.md`
 
 ## Non-Goals
 

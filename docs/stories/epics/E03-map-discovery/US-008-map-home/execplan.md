@@ -35,7 +35,7 @@ Risk flags:
 
 Hard gates:
 
-- External provider behavior is avoided in this PR; see decision 0009.
+- External provider behavior is avoided in this PR; see decision 0010.
 
 ## Work Phases
 

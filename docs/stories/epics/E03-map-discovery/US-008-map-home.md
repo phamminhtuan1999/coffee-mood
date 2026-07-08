@@ -45,7 +45,7 @@ Full-screen warm-styled map with photo pins, clustering, vibe chips, floating se
 - External provider hard gate: expanded to high-risk story folder at
   `docs/stories/epics/E03-map-discovery/US-008-map-home/`.
 - Provider installation is deferred by
-  `docs/decisions/0009-defer-map-provider-for-us-008.md`; this story implements
+  `docs/decisions/0010-defer-map-provider-for-us-008.md`; this story implements
   the provider-ready map home surface with deterministic fixtures.
 
 ## Validation

@@ -371,10 +371,10 @@ A task is done only when:
 ## Validation Ladder
 
 The quick layer exists today: `npm run lint`, `npx tsc --noEmit`, and
-`npx jest` (jest-expo + React Native Testing Library, decision 0009). Story
+`npx jest` (jest-expo + React Native Testing Library, decision 0011). Story
 `verify_command` rows should chain all three.
 
-Per decision 0010, automated checks and the manual iPhone 15 simulator smoke
+Per decision 0012, automated checks and the manual iPhone 15 simulator smoke
 are dual proof: a story is `implemented` only when its jest tests pass and a
 manual simulator pass over its surfaces is recorded in the story Evidence
 (screenshot path included). Automation never replaces the manual device pass,

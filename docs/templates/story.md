@@ -38,13 +38,13 @@ When updating durable proof status, use numeric booleans:
 
 | Layer | Expected proof |
 | --- | --- |
-| Unit | Automated jest tests for this story's surfaces (decision 0009) |
+| Unit | Automated jest tests for this story's surfaces (decision 0011) |
 | Integration | |
 | E2E | |
-| Platform | Manual iPhone 15 simulator smoke (390x844, safe areas), recorded in Evidence with a screenshot (decision 0010) |
+| Platform | Manual iPhone 15 simulator smoke (390x844, safe areas), recorded in Evidence with a screenshot (decision 0012) |
 | Release | |
 
-Per decision 0010, `implemented` requires both the automated checks and the
+Per decision 0012, `implemented` requires both the automated checks and the
 manual simulator pass; neither substitutes for the other.
 
 ## Harness Delta

@@ -81,7 +81,7 @@ When updating durable proof status, use numeric booleans:
   surface, photo pins, cluster marker, floating actions, and half bottom sheet
   rendered without visible clipping. Screenshot captured at
   `/tmp/cafemood-ios-simulator-us003.png`.
-- 2026-07-07 proof-gap pass (intake #2, decision 0009): unit tests added in
+- 2026-07-07 proof-gap pass (intake #2, decision 0011): unit tests added in
   `src/components/ui/__tests__/photo-map-pin.test.tsx` (default/selected/saved
   states, score badge, cluster count, pin shadow token, press handling) and
   `cafe-bottom-sheet-shell.test.tsx` (32px top radius, drag handle,

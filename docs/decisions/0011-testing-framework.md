@@ -1,4 +1,4 @@
-# 0009 Testing Framework: jest-expo + React Native Testing Library
+# 0011 Testing Framework: jest-expo + React Native Testing Library
 
 Date: 2026-07-07
 
