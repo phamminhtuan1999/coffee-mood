@@ -1461,6 +1461,7 @@ function MainMapHandoff({
           snapPoint={sheetSnapPoint}
           onSnapPointChange={setSheetSnapPoint}
           onSave={toggleSelectedCafeSave}
+          onOpenDetail={() => router.push(`/cafe/${selectedCafe.id}` as Href)}
         />
       ) : null}
 
@@ -1606,6 +1607,7 @@ type MapHomePreviewSheetProps = {
   snapPoint: CafeBottomSheetSnapPoint;
   onSnapPointChange: (snapPoint: CafeBottomSheetSnapPoint) => void;
   onSave: () => void;
+  onOpenDetail: () => void;
 };
 
 function MapHomePreviewSheet({
@@ -1616,6 +1618,7 @@ function MapHomePreviewSheet({
   snapPoint,
   onSnapPointChange,
   onSave,
+  onOpenDetail,
 }: MapHomePreviewSheetProps) {
   return (
     <View
@@ -1645,6 +1648,7 @@ function MapHomePreviewSheet({
         floating={snapPoint !== "expanded"}
         saved={saved}
         onSave={onSave}
+        onOpenDetail={onOpenDetail}
       />
     </View>
   );

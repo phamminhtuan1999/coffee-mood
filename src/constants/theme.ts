@@ -52,6 +52,7 @@ export const theme = {
       positiveSoft: "rgba(111, 139, 94, 0.12)",
       cautionSoft: "rgba(199, 110, 79, 0.12)",
       latteSoft: "rgba(216, 191, 165, 0.3)",
+      roastedSoft: "rgba(138, 90, 60, 0.25)",
     },
     score: {
       great: "#6F8B5E",

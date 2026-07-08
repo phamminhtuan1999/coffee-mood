@@ -208,6 +208,17 @@ describe("applied filters stay visibly active on the map", () => {
   });
 });
 
+describe("map sheet to cafe detail wiring", () => {
+  it("opens the selected cafe's detail from the sheet name", async () => {
+    await render(<Index />);
+    await settleMapLoading();
+
+    await fireEvent.press(screen.getByLabelText("Open Mostra Coffee details"));
+
+    expect(mockPush).toHaveBeenCalledWith("/cafe/mostra");
+  });
+});
+
 describe("AI unavailable state contract", () => {
   it("keeps the coffee-break copy from discovery.md", () => {
     expect(aiUnavailableTitle).toBe("CafeMood AI is taking a coffee break.");
