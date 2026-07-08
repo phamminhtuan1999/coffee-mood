@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -42,7 +42,11 @@ Full-screen warm-styled map with photo pins, clustering, vibe chips, floating se
 - UI surfaces: Main Map Home Screen
 - Commands / Queries / API / Tables: to be defined when the story is selected
   and the data model exists.
-- External provider hard gate: expand to high-risk story folder when selected.
+- External provider hard gate: expanded to high-risk story folder at
+  `docs/stories/epics/E03-map-discovery/US-008-map-home/`.
+- Provider installation is deferred by
+  `docs/decisions/0009-defer-map-provider-for-us-008.md`; this story implements
+  the provider-ready map home surface with deterministic fixtures.
 
 ## Validation
 
@@ -63,4 +67,12 @@ None yet.
 
 ## Evidence
 
-None yet - story is planned, not selected for implementation.
+Implemented main map home with warm custom map surface, photo pins, cluster
+affordance, Mostra Coffee selected state, vibe chip filtering, floating search,
+Ask AI route, location control, preview sheet, and bottom map tab bar.
+Verification passed: npm run lint; npx tsc --noEmit; story verify US-008; git
+diff --check; iPhone 15 Pro simulator smoke via Expo Go on iOS 17.2 rendered
+the US-008 map home. Screenshot:
+`/tmp/cafemood-ios-simulator-us008-final.png`. Interaction automation remains
+limited by backlog #2, so pin/filter/navigation interactions are covered by
+static route/state validation and TypeScript.

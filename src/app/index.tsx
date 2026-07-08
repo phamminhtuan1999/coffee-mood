@@ -2,6 +2,8 @@ import * as Location from "expo-location";
 import { Image } from "expo-image";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
+import { useRouter } from "expo-router";
+import type { Href } from "expo-router";
 import {
   Animated,
   Easing,
@@ -11,9 +13,11 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   CafeImageCard,
+  ClusteredPhotoPin,
   CollectionCard,
   MapPreviewSurface,
   PhotoMapPin,
@@ -115,6 +119,110 @@ const distanceOptions: DistancePreference[] = [
 ];
 
 const priceOptions: PricePreference[] = ["$", "$$", "$$$"];
+
+const searchRoute = "/search" as Href;
+const aiFinderRoute = "/ai-finder" as Href;
+
+type CafeMapPinTone = "terracotta" | "latte" | "olive";
+
+type CafeMapPin = {
+  id: string;
+  name: string;
+  meta: string;
+  score: string;
+  tags: string[];
+  scores: { label: string; value: string }[];
+  summary: string;
+  tone: CafeMapPinTone;
+  saved?: boolean;
+  top?: number;
+  left?: number;
+  right?: number;
+  bottom?: number;
+};
+
+const mapHomeChips = [
+  "Work",
+  "Aesthetic",
+  "Date",
+  "Quiet",
+  "Outdoor",
+  "Open Now",
+  "Parking",
+] as const;
+
+type MapHomeChip = (typeof mapHomeChips)[number];
+
+const cafeMapPins: CafeMapPin[] = [
+  {
+    id: "mostra",
+    name: "Mostra Coffee",
+    meta: "North Park · 0.3 mi",
+    score: "9.1",
+    tags: ["Aesthetic", "Specialty Coffee", "Good Latte"],
+    scores: [
+      { label: "Aesthetic", value: "9.1" },
+      { label: "Coffee", value: "8.8" },
+      { label: "Work", value: "6.5" },
+    ],
+    summary:
+      "Great coffee and cozy interior. Better for casual hangout or photos than long work sessions.",
+    tone: "terracotta",
+    top: 224,
+    left: 76,
+  },
+  {
+    id: "marigold",
+    name: "Marigold & Oak",
+    meta: "North Park · 0.5 mi",
+    score: "8.9",
+    tags: ["Quiet", "Work", "Open Now"],
+    scores: [
+      { label: "Quiet", value: "8.9" },
+      { label: "Coffee", value: "8.4" },
+      { label: "Work", value: "8.7" },
+    ],
+    summary:
+      "Soft tables, lower music, and reliable outlets make this a stronger work pick.",
+    tone: "latte",
+    top: 318,
+    right: 54,
+  },
+  {
+    id: "terrace",
+    name: "Terrace & Thistle",
+    meta: "South Park · 0.7 mi",
+    score: "8.4",
+    tags: ["Outdoor", "Date", "Open Now"],
+    scores: [
+      { label: "Outdoor", value: "8.6" },
+      { label: "Coffee", value: "8.1" },
+      { label: "Date", value: "8.4" },
+    ],
+    summary:
+      "Plant-filled patio seating and a warm afternoon crowd fit outdoor hangs.",
+    tone: "olive",
+    bottom: 266,
+    left: 128,
+  },
+  {
+    id: "hearth",
+    name: "Hearth Supply Co.",
+    meta: "University Heights · 0.8 mi",
+    score: "7.8",
+    tags: ["Work", "Parking"],
+    scores: [
+      { label: "Parking", value: "8.0" },
+      { label: "Coffee", value: "7.9" },
+      { label: "Work", value: "7.8" },
+    ],
+    summary:
+      "Easier parking and long tables make this practical for focused mornings.",
+    tone: "latte",
+    bottom: 344,
+    right: 122,
+  },
+];
 
 export default function Index() {
   const [authSession, setAuthSession] = useState<AuthSession | null>(() =>
@@ -985,111 +1093,600 @@ function MainMapHandoff({
   selection,
   onEditTaste,
 }: MainMapHandoffProps) {
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const [activeChip, setActiveChip] = useState<MapHomeChip | null>("Aesthetic");
+  const [selectedCafeId, setSelectedCafeId] = useState("mostra");
+
+  const filteredPins = filterCafePins(activeChip);
+  const selectedCafe =
+    cafeMapPins.find((cafe) => cafe.id === selectedCafeId) ?? cafeMapPins[0];
+
+  const selectChip = (chip: MapHomeChip) => {
+    const nextChip = activeChip === chip ? null : chip;
+    const nextPins = filterCafePins(nextChip);
+
+    setActiveChip(nextChip);
+    setSelectedCafeId(nextPins[0]?.id ?? cafeMapPins[0].id);
+  };
+
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      style={{ backgroundColor: theme.colors.background.cream50 }}
-      contentContainerStyle={{
+    <View
+      style={{
+        flex: 1,
         minHeight: 844,
-        paddingHorizontal: theme.spacing.screen,
-        paddingTop: 72,
-        paddingBottom: theme.spacing.xxl,
+        backgroundColor: theme.colors.background.warmPaper,
       }}
     >
-      <WarmMapTexture />
-      <View
+      <MapPreviewSurface>
+        {filteredPins.map((cafe) => (
+          <View
+            key={cafe.id}
+            style={{
+              position: "absolute",
+              top: cafe.top,
+              left: cafe.left,
+              right: cafe.right,
+              bottom: cafe.bottom,
+            }}
+          >
+            <PhotoMapPin
+              label={cafe.name}
+              score={cafe.score}
+              selected={selectedCafe.id === cafe.id}
+              saved={cafe.saved}
+              tone={cafe.tone}
+              onPress={() => setSelectedCafeId(cafe.id)}
+            />
+          </View>
+        ))}
+        <View style={{ position: "absolute", top: 420, right: 42 }}>
+          <ClusteredPhotoPin
+            count={3}
+            label="Cluster of cafes near University Heights"
+            onPress={() => setSelectedCafeId("hearth")}
+          />
+        </View>
+        <View
+          pointerEvents="none"
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 240,
+            backgroundColor: theme.colors.surface.glassCream,
+          }}
+        />
+      </MapPreviewSurface>
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Search cafes, vibes, or neighborhoods"
+        onPress={() => router.push(searchRoute)}
         style={{
-          height: 340,
-          overflow: "hidden",
-          borderRadius: theme.radius.imageCard,
+          position: "absolute",
+          top: Math.max(insets.top + theme.spacing.md, 64),
+          left: theme.spacing.screen,
+          right: theme.spacing.screen,
+          minHeight: 52,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: theme.spacing.sm,
+          paddingLeft: theme.spacing.md,
+          paddingRight: theme.spacing.xs,
+          borderRadius: theme.radius.chip,
           borderCurve: "continuous",
-          backgroundColor: theme.colors.background.warmPaper,
-        }}
-      >
-        <MapPreviewSurface>
-          <View style={{ position: "absolute", top: 72, left: 60 }}>
-            <PhotoMapPin label="Taste match cafe" score="9.1" selected tone="terracotta" />
-          </View>
-          <View style={{ position: "absolute", top: 156, right: 78 }}>
-            <PhotoMapPin label="Quiet cafe" score="8.9" tone="latte" />
-          </View>
-          <View style={{ position: "absolute", bottom: 58, left: 110 }}>
-            <PhotoMapPin label="Outdoor cafe" tone="olive" />
-          </View>
-        </MapPreviewSurface>
-      </View>
-      <Text
-        style={{
-          ...theme.typography.title,
-          marginTop: theme.spacing.xl,
-          color: theme.colors.text.espresso900,
-        }}
-      >
-        Your cafe map is ready
-      </Text>
-      <Text
-        style={{
-          ...theme.typography.bodySmall,
-          marginTop: theme.spacing.sm,
-          color: theme.colors.text.muted,
-        }}
-      >
-        We will tune discovery around your taste profile and selected area. The
-        full main map arrives in US-008.
-      </Text>
-      <View
-        style={{
-          marginTop: theme.spacing.xl,
-          padding: theme.spacing.screen,
-          borderRadius: theme.radius.card,
-          borderCurve: "continuous",
-          borderColor: theme.colors.surface.borderSoft,
-          borderWidth: 1,
           backgroundColor: theme.colors.surface.cardCream,
+          boxShadow: theme.shadows.button,
         }}
       >
-        <Text
+        <Image
+          source="sf:magnifyingglass"
           style={{
-            ...theme.typography.caption,
-            color: theme.colors.brand.terracotta,
-            textTransform: "uppercase",
+            width: 16,
+            height: 16,
+            tintColor: theme.colors.text.muted,
           }}
-        >
-          Taste profile
-        </Text>
+        />
         <Text
+          numberOfLines={1}
           style={{
-            ...theme.typography.sectionTitle,
-            marginTop: theme.spacing.xs,
-            color: theme.colors.text.espresso900,
-          }}
-        >
-          {profile?.skipped ? "Skipped for now" : tasteProfileSummary(profile)}
-        </Text>
-        <Text
-          style={{
-            ...theme.typography.caption,
-            marginTop: theme.spacing.xs,
+            ...theme.typography.bodySmall,
+            flex: 1,
+            fontSize: 13,
             color: theme.colors.text.muted,
           }}
         >
-          {selection?.label ?? "Location can be set later"}
+          Search cafes, vibes, or neighborhoods
         </Text>
-        {profile && !profile.skipped ? (
+        <View
+          style={{
+            width: 36,
+            height: 36,
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: theme.radius.photoPin,
+            backgroundColor: theme.colors.surface.pressed,
+          }}
+        >
+          <Image
+            source="sf:slider.horizontal.3"
+            style={{
+              width: 17,
+              height: 17,
+              tintColor: theme.colors.text.espresso700,
+            }}
+          />
+        </View>
+      </Pressable>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentInsetAdjustmentBehavior="automatic"
+        style={{
+          position: "absolute",
+          top: Math.max(insets.top + 80, 128),
+          left: 0,
+          right: 0,
+        }}
+        contentContainerStyle={{
+          gap: theme.spacing.xs,
+          paddingLeft: theme.spacing.screen,
+          paddingRight: theme.spacing.screen,
+        }}
+      >
+        {mapHomeChips.map((chip) => (
+          <VibeChip
+            key={chip}
+            label={chip}
+            selected={activeChip === chip}
+            onPress={() => selectChip(chip)}
+          />
+        ))}
+      </ScrollView>
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Use current map location"
+        onPress={() => setSelectedCafeId("mostra")}
+        style={({ pressed }) => ({
+          position: "absolute",
+          right: theme.spacing.md,
+          bottom: 478,
+          width: 46,
+          height: 46,
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: theme.radius.photoPin,
+          backgroundColor: theme.colors.surface.cardCream,
+          boxShadow: theme.shadows.button,
+          opacity: pressed ? 0.82 : 1,
+        })}
+      >
+        <Image
+          source="sf:location.fill"
+          style={{
+            width: 18,
+            height: 18,
+            tintColor: theme.colors.text.espresso900,
+          }}
+        />
+      </Pressable>
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Ask AI"
+        onPress={() => router.push(aiFinderRoute)}
+        style={({ pressed }) => ({
+          position: "absolute",
+          right: theme.spacing.md,
+          bottom: 420,
+          minHeight: 46,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: theme.spacing.xs,
+          paddingHorizontal: theme.spacing.screen,
+          borderRadius: theme.radius.chip,
+          backgroundColor: theme.colors.text.espresso900,
+          boxShadow: theme.shadows.card,
+          opacity: pressed ? 0.86 : 1,
+        })}
+      >
+        <Image
+          source="sf:sparkles"
+          style={{
+            width: 14,
+            height: 14,
+            tintColor: theme.colors.brand.latteBeige,
+          }}
+        />
+        <Text
+          style={{
+            ...theme.typography.chipLabel,
+            fontFamily: theme.fonts.family.sansBold,
+            color: theme.colors.background.cream50,
+          }}
+        >
+          Ask AI
+        </Text>
+      </Pressable>
+
+      <MapHomePreviewSheet
+        cafe={selectedCafe}
+        locationLabel={selection?.label ?? "Current area"}
+        profileLabel={profile?.skipped ? "Open taste" : tasteProfileSummary(profile)}
+      />
+
+      <MapTabBar
+        bottomInset={insets.bottom}
+        onEditTaste={onEditTaste}
+      />
+    </View>
+  );
+}
+
+function filterCafePins(activeChip: MapHomeChip | null) {
+  if (!activeChip) {
+    return cafeMapPins;
+  }
+
+  if (activeChip === "Aesthetic") {
+    return cafeMapPins.filter((cafe) => cafe.tags.includes("Aesthetic"));
+  }
+
+  return cafeMapPins.filter((cafe) => cafe.tags.includes(activeChip));
+}
+
+type MapHomePreviewSheetProps = {
+  cafe: CafeMapPin;
+  locationLabel: string;
+  profileLabel: string;
+};
+
+function MapHomePreviewSheet({
+  cafe,
+  locationLabel,
+  profileLabel,
+}: MapHomePreviewSheetProps) {
+  return (
+    <View
+      style={{
+        position: "absolute",
+        left: theme.spacing.sm,
+        right: theme.spacing.sm,
+        bottom: 100,
+        paddingHorizontal: theme.spacing.md,
+        paddingTop: theme.spacing.sm,
+        paddingBottom: theme.spacing.md,
+        borderTopLeftRadius: theme.radius.bottomSheetTop,
+        borderTopRightRadius: theme.radius.bottomSheetTop,
+        borderBottomLeftRadius: theme.radius.imageCard,
+        borderBottomRightRadius: theme.radius.imageCard,
+        borderCurve: "continuous",
+        borderWidth: 1,
+        borderColor: theme.colors.surface.borderSoft,
+        backgroundColor: theme.colors.background.cream50,
+        boxShadow: theme.shadows.card,
+      }}
+    >
+      <View
+        style={{
+          width: 36,
+          height: 4,
+          alignSelf: "center",
+          marginBottom: theme.spacing.sm,
+          borderRadius: theme.radius.chip,
+          backgroundColor: theme.colors.surface.borderStrong,
+        }}
+      />
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: theme.spacing.sm,
+        }}
+      >
+        <CafeThumb tone={cafe.tone} />
+        <View style={{ flex: 1, minWidth: 0 }}>
           <Text
+            numberOfLines={1}
+            style={{
+              ...theme.typography.sectionTitle,
+              fontFamily: theme.fonts.family.serifSemibold,
+              color: theme.colors.text.espresso900,
+            }}
+          >
+            {cafe.name}
+          </Text>
+          <Text
+            numberOfLines={1}
             style={{
               ...theme.typography.caption,
-              marginTop: theme.spacing.xs,
               color: theme.colors.text.muted,
             }}
           >
-            {profile.distance} radius · {profile.price}
+            {cafe.meta} · {locationLabel}
           </Text>
-        ) : null}
+        </View>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.xxs,
+            paddingHorizontal: theme.spacing.sm,
+            paddingVertical: theme.spacing.xs,
+            borderRadius: theme.spacing.sm,
+            backgroundColor: theme.colors.surface.pressed,
+          }}
+        >
+          <View
+            style={{
+              width: 7,
+              height: 7,
+              borderRadius: theme.radius.photoPin,
+              backgroundColor: theme.colors.score.great,
+            }}
+          />
+          <Text
+            style={{
+              ...theme.typography.chipLabel,
+              fontFamily: theme.fonts.family.sansBold,
+              color: theme.colors.text.espresso900,
+            }}
+          >
+            {cafe.score}
+          </Text>
+        </View>
       </View>
-      <View style={{ flex: 1, minHeight: theme.spacing.xxxl }} />
-      <ActionButton label="Edit Taste" variant="secondary" onPress={onEditTaste} />
-    </ScrollView>
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          gap: theme.spacing.xs,
+          marginTop: theme.spacing.sm,
+        }}
+      >
+        {cafe.tags.map((tag) => (
+          <View
+            key={tag}
+            style={{
+              paddingHorizontal: theme.spacing.sm,
+              paddingVertical: 5,
+              borderRadius: theme.radius.chip,
+              backgroundColor: theme.colors.background.warmPaper,
+            }}
+          >
+            <Text
+              style={{
+                ...theme.typography.caption,
+                fontFamily: theme.fonts.family.sansSemibold,
+                color: theme.colors.text.espresso700,
+              }}
+            >
+              {tag}
+            </Text>
+          </View>
+        ))}
+      </View>
+      <View
+        style={{
+          flexDirection: "row",
+          gap: theme.spacing.xs,
+          marginTop: theme.spacing.sm,
+        }}
+      >
+        {cafe.scores.map((score) => (
+          <View
+            key={score.label}
+            style={{
+              flex: 1,
+              alignItems: "center",
+              paddingVertical: theme.spacing.xs,
+              borderRadius: theme.spacing.sm,
+              borderWidth: 1,
+              borderColor: theme.colors.surface.borderSoft,
+              backgroundColor: theme.colors.surface.cardCream,
+            }}
+          >
+            <Text
+              style={{
+                ...theme.typography.bodySmall,
+                fontFamily: theme.fonts.family.sansBold,
+                color: theme.colors.text.espresso900,
+              }}
+            >
+              {score.value}
+            </Text>
+            <Text
+              numberOfLines={1}
+              style={{
+                ...theme.typography.caption,
+                fontSize: 10,
+                color: theme.colors.text.muted,
+                textTransform: "uppercase",
+              }}
+            >
+              {score.label}
+            </Text>
+          </View>
+        ))}
+      </View>
+      <View
+        style={{
+          flexDirection: "row",
+          gap: theme.spacing.xs,
+          marginTop: theme.spacing.sm,
+        }}
+      >
+        <View
+          style={{
+            width: 22,
+            height: 22,
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: theme.radius.photoPin,
+            backgroundColor: theme.colors.brand.latteBeige,
+          }}
+        >
+          <Image
+            source="sf:sparkles"
+            style={{
+              width: 11,
+              height: 11,
+              tintColor: theme.colors.text.espresso700,
+            }}
+          />
+        </View>
+        <Text
+          style={{
+            ...theme.typography.caption,
+            flex: 1,
+            color: theme.colors.text.espresso700,
+          }}
+        >
+          {cafe.summary}
+        </Text>
+      </View>
+      <Text
+        numberOfLines={1}
+        style={{
+          ...theme.typography.caption,
+          marginTop: theme.spacing.xs,
+          color: theme.colors.text.muted,
+        }}
+      >
+        Tuned for {profileLabel}
+      </Text>
+    </View>
+  );
+}
+
+function CafeThumb({ tone }: { tone: CafeMapPinTone }) {
+  const backgroundColor =
+    tone === "olive"
+      ? theme.colors.brand.oliveMatcha
+      : tone === "latte"
+        ? theme.colors.brand.latteBeige
+        : theme.colors.brand.terracotta;
+  const accentColor =
+    tone === "olive"
+      ? theme.colors.text.espresso700
+      : theme.colors.brand.roastedBrown;
+
+  return (
+    <View
+      style={{
+        width: 54,
+        height: 54,
+        overflow: "hidden",
+        borderRadius: theme.spacing.md,
+        backgroundColor,
+      }}
+    >
+      <View
+        style={{
+          position: "absolute",
+          right: -8,
+          bottom: -12,
+          width: 44,
+          height: 44,
+          borderRadius: theme.radius.photoPin,
+          backgroundColor: accentColor,
+        }}
+      />
+    </View>
+  );
+}
+
+type MapTabBarProps = {
+  bottomInset: number;
+  onEditTaste: () => void;
+};
+
+function MapTabBar({ bottomInset, onEditTaste }: MapTabBarProps) {
+  const router = useRouter();
+  const tabs = [
+    { label: "Map", icon: "sf:map.fill", selected: true, onPress: undefined },
+    {
+      label: "Search",
+      icon: "sf:magnifyingglass",
+      selected: false,
+      onPress: () => router.push(searchRoute),
+    },
+    { label: "Saved", icon: "sf:heart", selected: false, onPress: undefined },
+    {
+      label: "Routes",
+      icon: "sf:point.topleft.down.curvedto.point.bottomright.up",
+      selected: false,
+      onPress: undefined,
+    },
+    {
+      label: "Taste",
+      icon: "sf:person.crop.circle",
+      selected: false,
+      onPress: onEditTaste,
+    },
+  ] as const;
+
+  return (
+    <View
+      style={{
+        position: "absolute",
+        left: 0,
+        right: 0,
+        bottom: 0,
+        minHeight: 74 + bottomInset,
+        flexDirection: "row",
+        alignItems: "flex-start",
+        paddingHorizontal: theme.spacing.xs,
+        paddingTop: theme.spacing.xs,
+        paddingBottom: Math.max(bottomInset, theme.spacing.sm),
+        borderTopWidth: 1,
+        borderTopColor: theme.colors.surface.borderSoft,
+        backgroundColor: theme.colors.background.cream50,
+      }}
+    >
+      {tabs.map((tab) => (
+        <Pressable
+          key={tab.label}
+          accessibilityRole="button"
+          accessibilityState={{ selected: tab.selected }}
+          onPress={tab.onPress}
+          style={({ pressed }) => ({
+            flex: 1,
+            alignItems: "center",
+            gap: theme.spacing.xxs,
+            paddingVertical: theme.spacing.xs,
+            opacity: pressed ? 0.72 : 1,
+          })}
+        >
+          <Image
+            source={tab.icon}
+            style={{
+              width: 21,
+              height: 21,
+              tintColor: tab.selected
+                ? theme.colors.text.espresso900
+                : theme.colors.text.muted,
+            }}
+          />
+          <Text
+            numberOfLines={1}
+            style={{
+              ...theme.typography.caption,
+              fontSize: 10,
+              color: tab.selected
+                ? theme.colors.text.espresso900
+                : theme.colors.text.muted,
+            }}
+          >
+            {tab.label}
+          </Text>
+        </Pressable>
+      ))}
+    </View>
   );
 }
 
