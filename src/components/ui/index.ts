@@ -1,6 +1,7 @@
 export { AISummaryCard } from "@/components/ui/ai-summary-card";
 export { CafeButton, IconButton } from "@/components/ui/button";
 export { CafeBottomSheetShell } from "@/components/ui/cafe-bottom-sheet-shell";
+export type { CafeBottomSheetSnapPoint } from "@/components/ui/cafe-bottom-sheet-shell";
 export { CafeImageCard } from "@/components/ui/cafe-image-card";
 export { ClusteredPhotoPin, PhotoMapPin } from "@/components/ui/photo-map-pin";
 export { CollectionCard } from "@/components/ui/collection-card";

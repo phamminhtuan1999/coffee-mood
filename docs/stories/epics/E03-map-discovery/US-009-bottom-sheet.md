@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -43,6 +43,10 @@ Selecting a pin presents the cafe preview sheet with collapsed, half, and expand
 - UI surfaces: Cafe Bottom Sheet - Collapsed; Cafe Bottom Sheet - Half Expanded; Cafe Bottom Sheet - Expanded
 - Commands / Queries / API / Tables: to be defined when the story is selected
   and the data model exists.
+- Implemented with the reusable `CafeBottomSheetShell` from US-003, now wired
+  to the US-008 map home selected cafe state.
+- The sheet supports collapsed, half, and expanded snap points with Reanimated
+  height transitions and pan gestures through `react-native-gesture-handler`.
 
 ## Validation
 
@@ -63,4 +67,13 @@ None yet.
 
 ## Evidence
 
-None yet - story is planned, not selected for implementation.
+Implemented collapsed, half, and expanded cafe preview sheet states. The map
+home now uses the reusable `CafeBottomSheetShell`, tracks selected cafe snap
+state, supports Reanimated height transitions, pan-to-snap gestures, tap-to-cycle
+handle behavior, saved state, and expanded content for photos, why it matches,
+people love, watch out for, and Add to Route. Verification passed: npm run
+lint; npx tsc --noEmit; story verify US-009; git diff --check; iPhone 15 Pro
+simulator smoke via Expo Go on iOS 17.2 rendered the half sheet with actions.
+Screenshot: `/tmp/cafemood-ios-simulator-us009-half.png`. Interaction
+automation remains limited by backlog #2, so snap interactions are covered by
+Reanimated/Gesture static validation and first-render simulator proof.
