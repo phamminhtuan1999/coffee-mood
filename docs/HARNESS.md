@@ -368,10 +368,19 @@ A task is done only when:
   `scripts/bin/harness-cli backlog add`.
 - The final response says what changed and what was not attempted.
 
-## Future Validation Ladder
+## Validation Ladder
 
-No validation scripts exist yet. When implementation begins, the expected ladder
-is:
+The quick layer exists today: `npm run lint`, `npx tsc --noEmit`, and
+`npx jest` (jest-expo + React Native Testing Library, decision 0009). Story
+`verify_command` rows should chain all three.
+
+Per decision 0010, automated checks and the manual iPhone 15 simulator smoke
+are dual proof: a story is `implemented` only when its jest tests pass and a
+manual simulator pass over its surfaces is recorded in the story Evidence
+(screenshot path included). Automation never replaces the manual device pass,
+and the manual pass never excuses missing tests.
+
+The remaining ladder is aspirational:
 
 ```text
 validate:quick
