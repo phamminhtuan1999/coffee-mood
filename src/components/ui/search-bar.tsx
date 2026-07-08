@@ -50,10 +50,15 @@ export function SearchBar({
         placeholderTextColor={theme.colors.text.muted}
         value={value}
         style={{
-          ...theme.typography.bodySmall,
+          fontFamily: theme.typography.bodySmall.fontFamily,
+          fontSize: theme.typography.bodySmall.fontSize,
           flex: 1,
+          height: 52,
           color: theme.colors.text.espresso900,
-          padding: 0,
+          includeFontPadding: false,
+          paddingHorizontal: 0,
+          paddingVertical: 0,
+          textAlignVertical: "center",
         }}
       />
       <View

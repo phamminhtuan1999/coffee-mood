@@ -60,6 +60,7 @@ export function SearchScreenContent() {
             }}
           />
           <TextInput
+            accessibilityLabel="Search"
             value={query}
             onChangeText={setQuery}
             placeholder="Search cafes, vibes, or neighborhoods"
@@ -67,11 +68,15 @@ export function SearchScreenContent() {
             autoCapitalize="sentences"
             returnKeyType="search"
             style={{
-              ...theme.typography.bodySmall,
+              fontFamily: theme.typography.bodySmall.fontFamily,
+              fontSize: theme.typography.bodySmall.fontSize,
               flex: 1,
-              minHeight: 46,
+              height: 50,
               color: theme.colors.text.espresso900,
-              padding: 0,
+              includeFontPadding: false,
+              paddingHorizontal: 0,
+              paddingVertical: 0,
+              textAlignVertical: "center",
             }}
           />
         </View>
