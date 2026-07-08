@@ -19,6 +19,7 @@ import {
 import type { CafeBestTime, CafeDetail, CafeSimilar } from "@/data/cafe-details";
 import { cafeMapPins } from "@/data/map-pins";
 import type { CafeMapPin, CafeMapPinTone } from "@/data/map-pins";
+import { getReviewInsight } from "@/data/review-insights";
 
 // QA override for deterministic simulator smoke of the detail states
 // (same deep-link pattern as ?discovery= on the map route).
@@ -123,6 +124,7 @@ function LoadedCafeDetail({
 }: LoadedCafeDetailProps) {
   const insets = useSafeAreaInsets();
   const showEditorial = !limited;
+  const insight = getReviewInsight(pin.id);
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background.cream50 }}>
@@ -409,6 +411,58 @@ function LoadedCafeDetail({
                   tone="caution"
                 />
               </View>
+
+              {insight ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="What people say"
+                  onPress={() => router.push(`/cafe/${pin.id}/insights`)}
+                  style={({ pressed }) => ({
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: theme.spacing.sm,
+                    marginTop: theme.spacing.lg,
+                    paddingHorizontal: theme.spacing.md + 2,
+                    paddingVertical: theme.spacing.md - 2,
+                    borderRadius: theme.spacing.screen,
+                    borderCurve: "continuous",
+                    borderWidth: 1,
+                    borderColor: theme.colors.surface.borderSoft,
+                    backgroundColor: pressed
+                      ? theme.colors.surface.pressed
+                      : theme.colors.surface.cardCream,
+                  })}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={{
+                        ...theme.typography.chipLabel,
+                        fontFamily: theme.fonts.family.sansSemibold,
+                        color: theme.colors.text.espresso900,
+                      }}
+                    >
+                      What people say
+                    </Text>
+                    <Text
+                      style={{
+                        ...theme.typography.caption,
+                        marginTop: 2,
+                        color: theme.colors.text.muted,
+                      }}
+                    >
+                      Summarized from {insight.reviewCount} reviews
+                    </Text>
+                  </View>
+                  <Image
+                    source="sf:chevron.right"
+                    style={{
+                      width: 13,
+                      height: 13,
+                      tintColor: theme.colors.text.muted,
+                    }}
+                  />
+                </Pressable>
+              ) : null}
 
               {detail.bestTimes.length > 0 ? (
                 <>

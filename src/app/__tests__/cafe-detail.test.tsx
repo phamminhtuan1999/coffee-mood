@@ -129,6 +129,17 @@ describe("cafe detail content blocks", () => {
 
     expect(mockPush).toHaveBeenCalledWith("/cafe/mostra/gallery");
   });
+
+  it("opens the review insights from What people say", async () => {
+    await render(<CafeDetailScreen />);
+    await settleLoading();
+
+    expect(screen.getByText("Summarized from 480 reviews")).toBeTruthy();
+
+    await fireEvent.press(screen.getByLabelText("What people say"));
+
+    expect(mockPush).toHaveBeenCalledWith("/cafe/mostra/insights");
+  });
 });
 
 describe("cafe detail error state", () => {
@@ -172,6 +183,7 @@ describe("cafe detail limited-data state", () => {
     expect(screen.queryByText("Why it matches your mood")).toBeNull();
     expect(screen.queryByText("Best time to visit")).toBeNull();
     expect(screen.queryByText("Similar cafes nearby")).toBeNull();
+    expect(screen.queryByLabelText("What people say")).toBeNull();
   });
 
   it("handles missing images with a placeholder instead of a carousel", async () => {
