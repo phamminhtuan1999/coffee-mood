@@ -16,6 +16,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
+  CafeBottomSheetShell,
   CafeImageCard,
   ClusteredPhotoPin,
   CollectionCard,
@@ -23,6 +24,7 @@ import {
   PhotoMapPin,
   VibeChip,
 } from "@/components/ui";
+import type { CafeBottomSheetSnapPoint } from "@/components/ui";
 import { theme } from "@/constants/theme";
 import {
   AuthSession,
@@ -134,6 +136,11 @@ type CafeMapPin = {
   scores: { label: string; value: string }[];
   summary: string;
   tone: CafeMapPinTone;
+  vibe: string;
+  photoCount: number;
+  whyItMatches: string[];
+  peopleLove: string[];
+  watchOutFor: string[];
   saved?: boolean;
   top?: number;
   left?: number;
@@ -168,6 +175,15 @@ const cafeMapPins: CafeMapPin[] = [
     summary:
       "Great coffee and cozy interior. Better for casual hangout or photos than long work sessions.",
     tone: "terracotta",
+    vibe: "Cozy corner cafe for slow mornings",
+    photoCount: 24,
+    whyItMatches: [
+      "Aesthetic score is high enough for photo-focused cafe hopping.",
+      "Specialty coffee and good latte tags match your taste profile.",
+      "North Park distance keeps it easy for a short morning stop.",
+    ],
+    peopleLove: ["Horchata latte", "Window light", "Cozy interior"],
+    watchOutFor: ["Limited outlets", "Busy after 10am"],
     top: 224,
     left: 76,
   },
@@ -185,6 +201,15 @@ const cafeMapPins: CafeMapPin[] = [
     summary:
       "Soft tables, lower music, and reliable outlets make this a stronger work pick.",
     tone: "latte",
+    vibe: "Quiet work cafe with soft tables",
+    photoCount: 18,
+    whyItMatches: [
+      "Quiet and Work tags match focused sessions.",
+      "Open Now keeps it available for immediate planning.",
+      "Lower crowd energy makes it better for laptop time.",
+    ],
+    peopleLove: ["Reliable outlets", "Low music", "Long tables"],
+    watchOutFor: ["Less photogenic", "Small pastry case"],
     top: 318,
     right: 54,
   },
@@ -202,6 +227,15 @@ const cafeMapPins: CafeMapPin[] = [
     summary:
       "Plant-filled patio seating and a warm afternoon crowd fit outdoor hangs.",
     tone: "olive",
+    vibe: "Plant-filled patio for outdoor hangs",
+    photoCount: 16,
+    whyItMatches: [
+      "Outdoor and Date tags fit social cafe plans.",
+      "Patio seating gives more breathing room on warm days.",
+      "A softer crowd makes it better for slow conversations.",
+    ],
+    peopleLove: ["Patio plants", "Golden hour", "Date vibe"],
+    watchOutFor: ["Weather dependent", "Limited shade"],
     bottom: 266,
     left: 128,
   },
@@ -219,6 +253,15 @@ const cafeMapPins: CafeMapPin[] = [
     summary:
       "Easier parking and long tables make this practical for focused mornings.",
     tone: "latte",
+    vibe: "Practical work stop with easier parking",
+    photoCount: 12,
+    whyItMatches: [
+      "Parking and Work tags make it useful for task-driven visits.",
+      "Long tables support longer focus blocks.",
+      "University Heights placement expands the map beyond North Park.",
+    ],
+    peopleLove: ["Street parking", "Big tables", "Calm mornings"],
+    watchOutFor: ["Lower aesthetic score", "Fills up at lunch"],
     bottom: 344,
     right: 122,
   },
@@ -1097,17 +1140,35 @@ function MainMapHandoff({
   const router = useRouter();
   const [activeChip, setActiveChip] = useState<MapHomeChip | null>("Aesthetic");
   const [selectedCafeId, setSelectedCafeId] = useState("mostra");
+  const [sheetSnapPoint, setSheetSnapPoint] =
+    useState<CafeBottomSheetSnapPoint>("half");
+  const [savedCafeIds, setSavedCafeIds] = useState<string[]>([]);
 
   const filteredPins = filterCafePins(activeChip);
   const selectedCafe =
     cafeMapPins.find((cafe) => cafe.id === selectedCafeId) ?? cafeMapPins[0];
+  const isSelectedCafeSaved =
+    savedCafeIds.includes(selectedCafe.id) || selectedCafe.saved === true;
+
+  const selectCafe = (cafeId: string) => {
+    setSelectedCafeId(cafeId);
+    setSheetSnapPoint("half");
+  };
 
   const selectChip = (chip: MapHomeChip) => {
     const nextChip = activeChip === chip ? null : chip;
     const nextPins = filterCafePins(nextChip);
 
     setActiveChip(nextChip);
-    setSelectedCafeId(nextPins[0]?.id ?? cafeMapPins[0].id);
+    selectCafe(nextPins[0]?.id ?? cafeMapPins[0].id);
+  };
+
+  const toggleSelectedCafeSave = () => {
+    setSavedCafeIds((current) =>
+      current.includes(selectedCafe.id)
+        ? current.filter((id) => id !== selectedCafe.id)
+        : [...current, selectedCafe.id],
+    );
   };
 
   return (
@@ -1134,9 +1195,9 @@ function MainMapHandoff({
               label={cafe.name}
               score={cafe.score}
               selected={selectedCafe.id === cafe.id}
-              saved={cafe.saved}
+              saved={savedCafeIds.includes(cafe.id) || cafe.saved}
               tone={cafe.tone}
-              onPress={() => setSelectedCafeId(cafe.id)}
+              onPress={() => selectCafe(cafe.id)}
             />
           </View>
         ))}
@@ -1144,7 +1205,7 @@ function MainMapHandoff({
           <ClusteredPhotoPin
             count={3}
             label="Cluster of cafes near University Heights"
-            onPress={() => setSelectedCafeId("hearth")}
+            onPress={() => selectCafe("hearth")}
           />
         </View>
         <View
@@ -1250,7 +1311,7 @@ function MainMapHandoff({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Use current map location"
-        onPress={() => setSelectedCafeId("mostra")}
+        onPress={() => selectCafe("mostra")}
         style={({ pressed }) => ({
           position: "absolute",
           right: theme.spacing.md,
@@ -1317,6 +1378,10 @@ function MainMapHandoff({
         cafe={selectedCafe}
         locationLabel={selection?.label ?? "Current area"}
         profileLabel={profile?.skipped ? "Open taste" : tasteProfileSummary(profile)}
+        saved={isSelectedCafeSaved}
+        snapPoint={sheetSnapPoint}
+        onSnapPointChange={setSheetSnapPoint}
+        onSave={toggleSelectedCafeSave}
       />
 
       <MapTabBar
@@ -1343,258 +1408,49 @@ type MapHomePreviewSheetProps = {
   cafe: CafeMapPin;
   locationLabel: string;
   profileLabel: string;
+  saved: boolean;
+  snapPoint: CafeBottomSheetSnapPoint;
+  onSnapPointChange: (snapPoint: CafeBottomSheetSnapPoint) => void;
+  onSave: () => void;
 };
 
 function MapHomePreviewSheet({
   cafe,
   locationLabel,
   profileLabel,
+  saved,
+  snapPoint,
+  onSnapPointChange,
+  onSave,
 }: MapHomePreviewSheetProps) {
   return (
     <View
       style={{
         position: "absolute",
-        left: theme.spacing.sm,
-        right: theme.spacing.sm,
-        bottom: 100,
-        paddingHorizontal: theme.spacing.md,
-        paddingTop: theme.spacing.sm,
-        paddingBottom: theme.spacing.md,
-        borderTopLeftRadius: theme.radius.bottomSheetTop,
-        borderTopRightRadius: theme.radius.bottomSheetTop,
-        borderBottomLeftRadius: theme.radius.imageCard,
-        borderBottomRightRadius: theme.radius.imageCard,
-        borderCurve: "continuous",
-        borderWidth: 1,
-        borderColor: theme.colors.surface.borderSoft,
-        backgroundColor: theme.colors.background.cream50,
-        boxShadow: theme.shadows.card,
+        left: snapPoint === "expanded" ? 0 : theme.spacing.sm,
+        right: snapPoint === "expanded" ? 0 : theme.spacing.sm,
+        bottom: snapPoint === "expanded" ? 0 : 100,
+        zIndex: 20,
       }}
     >
-      <View
-        style={{
-          width: 36,
-          height: 4,
-          alignSelf: "center",
-          marginBottom: theme.spacing.sm,
-          borderRadius: theme.radius.chip,
-          backgroundColor: theme.colors.surface.borderStrong,
-        }}
-      />
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: theme.spacing.sm,
-        }}
-      >
-        <CafeThumb tone={cafe.tone} />
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Text
-            numberOfLines={1}
-            style={{
-              ...theme.typography.sectionTitle,
-              fontFamily: theme.fonts.family.serifSemibold,
-              color: theme.colors.text.espresso900,
-            }}
-          >
-            {cafe.name}
-          </Text>
-          <Text
-            numberOfLines={1}
-            style={{
-              ...theme.typography.caption,
-              color: theme.colors.text.muted,
-            }}
-          >
-            {cafe.meta} · {locationLabel}
-          </Text>
-        </View>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: theme.spacing.xxs,
-            paddingHorizontal: theme.spacing.sm,
-            paddingVertical: theme.spacing.xs,
-            borderRadius: theme.spacing.sm,
-            backgroundColor: theme.colors.surface.pressed,
-          }}
-        >
-          <View
-            style={{
-              width: 7,
-              height: 7,
-              borderRadius: theme.radius.photoPin,
-              backgroundColor: theme.colors.score.great,
-            }}
-          />
-          <Text
-            style={{
-              ...theme.typography.chipLabel,
-              fontFamily: theme.fonts.family.sansBold,
-              color: theme.colors.text.espresso900,
-            }}
-          >
-            {cafe.score}
-          </Text>
-        </View>
-      </View>
-      <View
-        style={{
-          flexDirection: "row",
-          flexWrap: "wrap",
-          gap: theme.spacing.xs,
-          marginTop: theme.spacing.sm,
-        }}
-      >
-        {cafe.tags.map((tag) => (
-          <View
-            key={tag}
-            style={{
-              paddingHorizontal: theme.spacing.sm,
-              paddingVertical: 5,
-              borderRadius: theme.radius.chip,
-              backgroundColor: theme.colors.background.warmPaper,
-            }}
-          >
-            <Text
-              style={{
-                ...theme.typography.caption,
-                fontFamily: theme.fonts.family.sansSemibold,
-                color: theme.colors.text.espresso700,
-              }}
-            >
-              {tag}
-            </Text>
-          </View>
-        ))}
-      </View>
-      <View
-        style={{
-          flexDirection: "row",
-          gap: theme.spacing.xs,
-          marginTop: theme.spacing.sm,
-        }}
-      >
-        {cafe.scores.map((score) => (
-          <View
-            key={score.label}
-            style={{
-              flex: 1,
-              alignItems: "center",
-              paddingVertical: theme.spacing.xs,
-              borderRadius: theme.spacing.sm,
-              borderWidth: 1,
-              borderColor: theme.colors.surface.borderSoft,
-              backgroundColor: theme.colors.surface.cardCream,
-            }}
-          >
-            <Text
-              style={{
-                ...theme.typography.bodySmall,
-                fontFamily: theme.fonts.family.sansBold,
-                color: theme.colors.text.espresso900,
-              }}
-            >
-              {score.value}
-            </Text>
-            <Text
-              numberOfLines={1}
-              style={{
-                ...theme.typography.caption,
-                fontSize: 10,
-                color: theme.colors.text.muted,
-                textTransform: "uppercase",
-              }}
-            >
-              {score.label}
-            </Text>
-          </View>
-        ))}
-      </View>
-      <View
-        style={{
-          flexDirection: "row",
-          gap: theme.spacing.xs,
-          marginTop: theme.spacing.sm,
-        }}
-      >
-        <View
-          style={{
-            width: 22,
-            height: 22,
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: theme.radius.photoPin,
-            backgroundColor: theme.colors.brand.latteBeige,
-          }}
-        >
-          <Image
-            source="sf:sparkles"
-            style={{
-              width: 11,
-              height: 11,
-              tintColor: theme.colors.text.espresso700,
-            }}
-          />
-        </View>
-        <Text
-          style={{
-            ...theme.typography.caption,
-            flex: 1,
-            color: theme.colors.text.espresso700,
-          }}
-        >
-          {cafe.summary}
-        </Text>
-      </View>
-      <Text
-        numberOfLines={1}
-        style={{
-          ...theme.typography.caption,
-          marginTop: theme.spacing.xs,
-          color: theme.colors.text.muted,
-        }}
-      >
-        Tuned for {profileLabel}
-      </Text>
-    </View>
-  );
-}
-
-function CafeThumb({ tone }: { tone: CafeMapPinTone }) {
-  const backgroundColor =
-    tone === "olive"
-      ? theme.colors.brand.oliveMatcha
-      : tone === "latte"
-        ? theme.colors.brand.latteBeige
-        : theme.colors.brand.terracotta;
-  const accentColor =
-    tone === "olive"
-      ? theme.colors.text.espresso700
-      : theme.colors.brand.roastedBrown;
-
-  return (
-    <View
-      style={{
-        width: 54,
-        height: 54,
-        overflow: "hidden",
-        borderRadius: theme.spacing.md,
-        backgroundColor,
-      }}
-    >
-      <View
-        style={{
-          position: "absolute",
-          right: -8,
-          bottom: -12,
-          width: 44,
-          height: 44,
-          borderRadius: theme.radius.photoPin,
-          backgroundColor: accentColor,
-        }}
+      <CafeBottomSheetShell
+        snapPoint={snapPoint}
+        onSnapPointChange={onSnapPointChange}
+        name={cafe.name}
+        meta={`${cafe.meta} · ${locationLabel}`}
+        score={cafe.score}
+        vibe={cafe.vibe}
+        tags={cafe.tags}
+        scores={cafe.scores}
+        summary={`${cafe.summary} Tuned for ${profileLabel}.`}
+        tone={cafe.tone}
+        photoCount={cafe.photoCount}
+        whyItMatches={cafe.whyItMatches}
+        peopleLove={cafe.peopleLove}
+        watchOutFor={cafe.watchOutFor}
+        floating={snapPoint !== "expanded"}
+        saved={saved}
+        onSave={onSave}
       />
     </View>
   );
