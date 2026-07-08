@@ -1,7 +1,7 @@
 # Story Backlog
 
 Populated from the CafeMood Map spec (intake #1, 2026-07-06). US-001 through
-US-010 are `implemented`; US-011 through US-028 remain `planned`. Design
+US-013 are `implemented`; US-014 through US-028 remain `planned`. Design
 source: extracted handoff under `docs/design/project/` (see
 `docs/product/overview.md`); cloud original on
 [claude.ai/design](https://claude.ai/design/p/c1d6d55d-c7e3-4bc5-b67a-6b50416f5dbd?file=CafeMood+Complete+App.dc.html).
@@ -24,14 +24,13 @@ commitments.
 | --- | --- | --- | --- | --- |
 | E01-design-system | Tokens, component kit, map pin + sheet shells | Batch 0 | US-001..003 | implemented |
 | E02-onboarding-auth | Splash, welcome, intro, auth, location, taste | Batch 1 | US-004..007 | implemented |
-| E03-map-discovery | Map home, sheet, search, AI finder, filters, states | Batch 2 | US-008..013 | in progress: US-008..010 implemented; US-011..013 planned |
+| E03-map-discovery | Map home, sheet, search, AI finder, filters, states | Batch 2 | US-008..013 | implemented |
 | E04-cafe-detail-save | Detail, gallery, insight, save, share | Batch 3 | US-014..018 | planned |
 | E05-planning-contribution | Routes, work/date planners, check-in, clips | Batch 4 | US-019..022 | planned |
 | E06-library-profile | Saved, collections, taste, profile, states, tabs | Batch 5 | US-023..027 | planned |
 | E07-qa-demo-polish | Full QA, prototype wiring, demo polish | Batch 6 | US-028 | planned |
 
-Suggested implementation order: continue E03 with US-011, then US-012 and
-US-013 before moving to E04, E05, E06, and E07. High-risk provider stories that
-remain planned, such as US-011 AI provider work, must expand to the high-risk
-template and confirm or supersede decision 0008 before real provider
-implementation.
+Suggested implementation order: E03 is complete; continue with E04, then E05,
+E06, and E07. Deferred provider work (map provider per decision 0010, AI
+provider per decision 0013) must expand to the high-risk template and confirm
+or supersede decision 0008 before real provider implementation.
