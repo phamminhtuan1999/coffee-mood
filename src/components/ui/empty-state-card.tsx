@@ -8,6 +8,7 @@ type EmptyStateCardProps = {
   copy: string;
   cta: string;
   tone?: "coffee" | "route" | "saved";
+  onCtaPress?: () => void;
 };
 
 const motifColor = {
@@ -21,6 +22,7 @@ export function EmptyStateCard({
   copy,
   cta,
   tone = "coffee",
+  onCtaPress,
 }: EmptyStateCardProps) {
   return (
     <View
@@ -73,7 +75,7 @@ export function EmptyStateCard({
       >
         {copy}
       </Text>
-      <CafeButton label={cta} />
+      <CafeButton label={cta} onPress={onCtaPress} />
     </View>
   );
 }
