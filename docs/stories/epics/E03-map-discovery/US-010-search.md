@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -35,13 +35,18 @@ Search supports plain and semantic vibe queries and returns editorial visual res
 ## Design Notes
 
 - UI surfaces: Search Screen
-- Commands / Queries / API / Tables: to be defined when the story is selected
-  and the data model exists.
+- Implemented a semantic search fixture model with recent searches, suggested
+  searches, token matching, editorial visual cards, score badges, match
+  reasons, and mini map preview pins.
+- Kept the Expo Router route file thin by moving the screen body into
+  `src/components/search/search-screen-content.tsx`.
+- Empty state uses the required "No match for that vibe." copy with a Reset
+  Filters CTA.
 
 ## Validation
 
 When updating durable proof status, use numeric booleans:
-`scripts/bin/harness-cli story update --id US-010 --unit 1 --integration 1 --e2e 0 --platform 0`.
+`scripts/bin/harness-cli story update --id US-010 --unit 1 --integration 1 --e2e 0 --platform 1`.
 
 | Layer | Expected proof |
 | --- | --- |
@@ -53,8 +58,13 @@ When updating durable proof status, use numeric booleans:
 
 ## Harness Delta
 
-None yet.
+- Added `src/data/search-fixtures.ts` as the local semantic result fixture
+  source until live search APIs are introduced.
 
 ## Evidence
 
-None yet - story is planned, not selected for implementation.
+- `npm run lint` passed.
+- `npx tsc --noEmit` passed.
+- `scripts/bin/harness-cli story verify US-010` passed.
+- iPhone simulator smoke captured at
+  `/tmp/cafemood-ios-simulator-us010-search.png`.
