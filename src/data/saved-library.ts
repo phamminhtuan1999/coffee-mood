@@ -36,6 +36,7 @@ export type LibraryEntry = {
   score: string;
   tags: string[];
   tone: CafeMapPinTone;
+  collectionId: string;
   collectionLabel: string;
   note: string;
 };
@@ -69,6 +70,7 @@ export function libraryEntries(
           score: pin.score,
           tags: pin.tags,
           tone: pin.tone,
+          collectionId: tabId,
           collectionLabel: collectionName,
           note: save.note,
         },
