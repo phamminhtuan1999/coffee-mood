@@ -5,12 +5,15 @@ export type { CafeBottomSheetSnapPoint } from "@/components/ui/cafe-bottom-sheet
 export { CafeImageCard } from "@/components/ui/cafe-image-card";
 export { ClusteredPhotoPin, PhotoMapPin } from "@/components/ui/photo-map-pin";
 export { CollectionCard } from "@/components/ui/collection-card";
+export { CreateCollectionSheet } from "@/components/ui/create-collection-sheet";
 export { EmptyStateCard } from "@/components/ui/empty-state-card";
 export { FilterRow } from "@/components/ui/filter-row";
 export { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 export { MapPreviewSurface } from "@/components/ui/map-preview-surface";
 export { MoodSlider } from "@/components/ui/mood-slider";
 export { RouteStopCard } from "@/components/ui/route-stop-card";
+export { SaveCollectionSheet } from "@/components/ui/save-collection-sheet";
+export type { SaveCollectionOption } from "@/components/ui/save-collection-sheet";
 export { SearchBar } from "@/components/ui/search-bar";
 export { ScoreBadge } from "@/components/ui/score-badge";
 export { PreferenceChip, VibeChip } from "@/components/ui/chip";

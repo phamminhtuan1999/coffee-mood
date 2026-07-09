@@ -6,6 +6,7 @@ import {
   cafeDetailErrorTitle,
   cafeDetailLimitedNotice,
 } from "@/data/cafe-details";
+import { getSavedState, isCafeSaved, resetSavedStore } from "@/utils/saved-store";
 
 const mockBack = jest.fn();
 const mockPush = jest.fn();
@@ -28,6 +29,8 @@ async function settleLoading() {
 beforeEach(() => {
   jest.clearAllMocks();
   jest.useFakeTimers();
+  localStorage.clear();
+  resetSavedStore();
   mockParams = { id: "mostra" };
 });
 
@@ -102,14 +105,73 @@ describe("cafe detail content blocks", () => {
     expect(screen.getByLabelText("Share cafe")).toBeTruthy();
   });
 
-  it("toggles the save state from the action bar", async () => {
+  it("opens the save sheet and persists a save to a chosen collection", async () => {
     await render(<CafeDetailScreen />);
     await settleLoading();
 
     const [saveButton] = screen.getAllByLabelText("Save cafe");
     await fireEvent.press(saveButton);
 
-    expect(screen.getAllByLabelText("Saved cafe").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("Save Mostra Coffee")).toBeTruthy();
+
+    await fireEvent.press(screen.getByLabelText("Work Spots, 0 saved"));
+    await fireEvent.changeText(
+      screen.getByLabelText("Private note"),
+      "Best before 10am",
+    );
+    await fireEvent.press(screen.getByLabelText("Save cafe to collections"));
+
+    // Sheet closes and the store reflects the save.
+    expect(screen.queryByText("Save Mostra Coffee")).toBeNull();
+    expect(isCafeSaved(getSavedState(), "mostra")).toBe(true);
+    expect(getSavedState().saves.mostra).toEqual({
+      collectionIds: ["work-spots"],
+      note: "Best before 10am",
+    });
+    expect(screen.getAllByLabelText("Saved cafe").length).toBeGreaterThanOrEqual(
+      1,
+    );
+  });
+
+  it("creates a new collection and returns to the save sheet with it selected", async () => {
+    await render(<CafeDetailScreen />);
+    await settleLoading();
+
+    await fireEvent.press(screen.getAllByLabelText("Save cafe")[0]);
+    await fireEvent.press(screen.getByLabelText("Create new collection"));
+
+    expect(screen.getByText("New collection")).toBeTruthy();
+
+    await fireEvent.press(
+      screen.getByLabelText("Use suggested name Matcha Places"),
+    );
+    await fireEvent.press(screen.getByLabelText("Create Collection"));
+
+    // Back on the save sheet, the new collection is present and selected.
+    expect(screen.getByText("Save Mostra Coffee")).toBeTruthy();
+    expect(
+      screen.getByRole("button", {
+        name: "Matcha Places, 0 saved",
+        selected: true,
+      }),
+    ).toBeTruthy();
+
+    await fireEvent.press(screen.getByLabelText("Save cafe to collections"));
+
+    expect(getSavedState().saves.mostra?.collectionIds).toEqual([
+      "matcha-places",
+    ]);
+  });
+
+  it("cancels the save sheet without saving", async () => {
+    await render(<CafeDetailScreen />);
+    await settleLoading();
+
+    await fireEvent.press(screen.getAllByLabelText("Save cafe")[0]);
+    await fireEvent.press(screen.getByText("Cancel"));
+
+    expect(screen.queryByText("Save Mostra Coffee")).toBeNull();
+    expect(isCafeSaved(getSavedState(), "mostra")).toBe(false);
   });
 
   it("navigates to a similar cafe's detail", async () => {

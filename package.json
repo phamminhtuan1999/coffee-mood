@@ -56,7 +56,8 @@
       "./jest-setup.ts"
     ],
     "moduleNameMapper": {
-      "^@/(.*)$": "<rootDir>/src/$1"
+      "^@/(.*)$": "<rootDir>/src/$1",
+      "^expo-sqlite/localStorage/install$": "<rootDir>/jest/expo-sqlite-localstorage-install.js"
     }
   },
   "private": true

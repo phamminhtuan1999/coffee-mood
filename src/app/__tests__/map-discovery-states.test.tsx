@@ -4,6 +4,7 @@ import Index, { MAP_LOADING_MS } from "@/app/index";
 import { aiUnavailableTitle } from "@/data/ai-finder-fixtures";
 import { defaultMapFilters } from "@/utils/map-filters";
 import type { MapFilters } from "@/utils/map-filters";
+import { resetSavedStore } from "@/utils/saved-store";
 
 const mockPush = jest.fn();
 const mockBack = jest.fn();
@@ -63,6 +64,8 @@ async function settleMapLoading() {
 beforeEach(() => {
   jest.clearAllMocks();
   jest.useFakeTimers();
+  localStorage.clear();
+  resetSavedStore();
   mockParams = {};
   useStoredFilters(defaultMapFilters());
   mockGetPermissions.mockResolvedValue({ status: "granted", canAskAgain: true });
