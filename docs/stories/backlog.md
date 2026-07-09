@@ -1,7 +1,7 @@
 # Story Backlog
 
 Populated from the CafeMood Map spec (intake #1, 2026-07-06). US-001 through
-US-024 are `implemented`; US-025 through US-028 remain
+US-025 are `implemented`; US-026 through US-028 remain
 `planned`. Design
 source: extracted handoff under `docs/design/project/` (see
 `docs/product/overview.md`); cloud original on
