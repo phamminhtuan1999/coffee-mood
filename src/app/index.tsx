@@ -178,8 +178,11 @@ export default function Index() {
   const [tasteProfile, setTasteProfile] = useState<TasteProfile | null>(() =>
     loadTasteProfile(),
   );
+  // Session gates first so sign out (US-026) returns to the auth flow even
+  // when taste answers persist; every completed onboarding has a session
+  // (guest mode included), so existing flows are unchanged.
   const [step, setStep] = useState<FirstRunStep>(() =>
-    tasteProfile ? "main-map" : authSession ? "location-primer" : "splash",
+    authSession ? (tasteProfile ? "main-map" : "location-primer") : "splash",
   );
   const [slideIndex, setSlideIndex] = useState(0);
   const [locationSelection, setLocationSelection] =

@@ -38,7 +38,11 @@ jest.mock("@/utils/taste-profile", () => ({
 }));
 
 jest.mock("@/utils/auth-session", () => ({
-  loadAuthSession: () => null,
+  // A completed session: the map home gates on the session first (US-026).
+  loadAuthSession: () => ({
+    provider: "guest",
+    createdAt: "2026-07-07T00:00:00.000Z",
+  }),
   saveAuthSession: jest.fn(),
 }));
 
