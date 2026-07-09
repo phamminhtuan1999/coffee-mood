@@ -1,7 +1,8 @@
 # Story Backlog
 
 Populated from the CafeMood Map spec (intake #1, 2026-07-06). US-001 through
-US-017 are `implemented`; US-018 through US-028 remain `planned`. Design
+US-018 are `implemented` (E04 complete); US-019 through US-028 remain
+`planned`. Design
 source: extracted handoff under `docs/design/project/` (see
 `docs/product/overview.md`); cloud original on
 [claude.ai/design](https://claude.ai/design/p/c1d6d55d-c7e3-4bc5-b67a-6b50416f5dbd?file=CafeMood+Complete+App.dc.html).
@@ -25,12 +26,13 @@ commitments.
 | E01-design-system | Tokens, component kit, map pin + sheet shells | Batch 0 | US-001..003 | implemented |
 | E02-onboarding-auth | Splash, welcome, intro, auth, location, taste | Batch 1 | US-004..007 | implemented |
 | E03-map-discovery | Map home, sheet, search, AI finder, filters, states | Batch 2 | US-008..013 | implemented |
-| E04-cafe-detail-save | Detail, gallery, insight, save, share | Batch 3 | US-014..018 | in progress: US-014..017 implemented; US-018 planned |
+| E04-cafe-detail-save | Detail, gallery, insight, save, share | Batch 3 | US-014..018 | implemented |
 | E05-planning-contribution | Routes, work/date planners, check-in, clips | Batch 4 | US-019..022 | planned |
 | E06-library-profile | Saved, collections, taste, profile, states, tabs | Batch 5 | US-023..027 | planned |
 | E07-qa-demo-polish | Full QA, prototype wiring, demo polish | Batch 6 | US-028 | planned |
 
-Suggested implementation order: E03 is complete; continue with E04, then E05,
-E06, and E07. Deferred provider work (map provider per decision 0010, AI
-provider per decision 0013) must expand to the high-risk template and confirm
-or supersede decision 0008 before real provider implementation.
+Suggested implementation order: E03 and E04 are complete; continue with E05,
+then E06 and E07. Deferred provider work (map provider per decision 0010, AI
+provider per decision 0013, client-side saves per decision 0014, share provider
+per decision 0015) must expand to the high-risk template and confirm or
+supersede decision 0008 before real provider implementation.

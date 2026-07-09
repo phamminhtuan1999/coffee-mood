@@ -16,4 +16,6 @@ export { SaveCollectionSheet } from "@/components/ui/save-collection-sheet";
 export type { SaveCollectionOption } from "@/components/ui/save-collection-sheet";
 export { SearchBar } from "@/components/ui/search-bar";
 export { ScoreBadge } from "@/components/ui/score-badge";
+export { ShareCafeCard } from "@/components/ui/share-cafe-card";
+export { ShareCafeSheet } from "@/components/ui/share-cafe-sheet";
 export { PreferenceChip, VibeChip } from "@/components/ui/chip";

@@ -202,6 +202,25 @@ describe("cafe detail content blocks", () => {
 
     expect(mockPush).toHaveBeenCalledWith("/cafe/mostra/insights");
   });
+
+  it("opens the share card overlay from the Share action", async () => {
+    await render(<CafeDetailScreen />);
+    await settleLoading();
+
+    await fireEvent.press(screen.getByText("Share"));
+
+    expect(screen.getByText("Share this cafe")).toBeTruthy();
+    expect(screen.getByLabelText("Share card for Mostra Coffee")).toBeTruthy();
+    expect(screen.getByText("North Park · San Diego")).toBeTruthy();
+
+    for (const label of ["Copy Link", "Share Image", "Send to Friend"]) {
+      expect(screen.getByLabelText(label)).toBeTruthy();
+    }
+
+    await fireEvent.press(screen.getByLabelText("Dismiss share sheet"));
+
+    expect(screen.queryByText("Share this cafe")).toBeNull();
+  });
 });
 
 describe("cafe detail error state", () => {
