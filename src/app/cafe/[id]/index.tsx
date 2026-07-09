@@ -1,12 +1,18 @@
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AISummaryCard, LoadingSkeleton } from "@/components/ui";
+import {
+  AISummaryCard,
+  CreateCollectionSheet,
+  LoadingSkeleton,
+  SaveCollectionSheet,
+} from "@/components/ui";
+import type { SaveCollectionOption } from "@/components/ui";
 import { theme } from "@/constants/theme";
 import {
   CAFE_DETAIL_LOADING_MS,
@@ -20,10 +26,23 @@ import type { CafeBestTime, CafeDetail, CafeSimilar } from "@/data/cafe-details"
 import { cafeMapPins } from "@/data/map-pins";
 import type { CafeMapPin, CafeMapPinTone } from "@/data/map-pins";
 import { getReviewInsight } from "@/data/review-insights";
+import {
+  collectionSaveCount,
+  createCollection,
+  getCafeSave,
+  getSavedState,
+  isCafeSaved,
+  saveCafe,
+  subscribeSaved,
+} from "@/utils/saved-store";
+import type { CollectionPrivacy } from "@/utils/saved-store";
 
 // QA override for deterministic simulator smoke of the detail states
 // (same deep-link pattern as ?discovery= on the map route).
 type DetailStateOverride = "loading" | "error" | "limited";
+
+// QA override to open a save/create sheet on load for simulator smoke.
+type DetailSheetOverride = "save" | "create";
 
 type DetailPhase = "loading" | "ready" | "error";
 
@@ -58,15 +77,26 @@ function parseDetailOverride(
     : undefined;
 }
 
+function parseSheetOverride(
+  value: string | string[] | undefined,
+): DetailSheetOverride | undefined {
+  return value === "save" || value === "create" ? value : undefined;
+}
+
 export default function CafeDetailScreen() {
-  const params = useLocalSearchParams<{ id?: string; state?: string }>();
+  const params = useLocalSearchParams<{
+    id?: string;
+    state?: string;
+    sheet?: string;
+  }>();
   const cafeId = typeof params.id === "string" ? params.id : "";
   const stateOverride = parseDetailOverride(params.state);
+  const sheetOverride = parseSheetOverride(params.sheet);
   const pin = cafeMapPins.find((cafe) => cafe.id === cafeId);
   const detail = getCafeDetail(cafeId);
   const [phase, setPhase] = useState<DetailPhase>("loading");
   const [retryAttempt, setRetryAttempt] = useState(0);
-  const [saved, setSaved] = useState(false);
+  const savedState = useSyncExternalStore(subscribeSaved, getSavedState);
 
   useEffect(() => {
     if (stateOverride === "loading") {
@@ -101,8 +131,8 @@ export default function CafeDetailScreen() {
       pin={pin}
       detail={detail}
       limited={detail.limited === true || stateOverride === "limited"}
-      saved={saved}
-      onToggleSave={() => setSaved((current) => !current)}
+      savedState={savedState}
+      sheetOverride={sheetOverride}
     />
   );
 }
@@ -111,20 +141,86 @@ type LoadedCafeDetailProps = {
   pin: CafeMapPin;
   detail: CafeDetail;
   limited: boolean;
-  saved: boolean;
-  onToggleSave: () => void;
+  savedState: ReturnType<typeof getSavedState>;
+  sheetOverride?: DetailSheetOverride;
 };
+
+type DetailSheet = "none" | "save" | "create";
 
 function LoadedCafeDetail({
   pin,
   detail,
   limited,
-  saved,
-  onToggleSave,
+  savedState,
+  sheetOverride,
 }: LoadedCafeDetailProps) {
   const insets = useSafeAreaInsets();
   const showEditorial = !limited;
   const insight = getReviewInsight(pin.id);
+  const saved = isCafeSaved(savedState, pin.id);
+
+  const initialSave = getCafeSave(savedState, pin.id);
+  const [sheet, setSheet] = useState<DetailSheet>(sheetOverride ?? "none");
+  const [draftIds, setDraftIds] = useState<string[]>(
+    initialSave?.collectionIds ?? [],
+  );
+  const [note, setNote] = useState(initialSave?.note ?? "");
+  const [createName, setCreateName] = useState("");
+  const [createDescription, setCreateDescription] = useState("");
+  const [createPrivacy, setCreatePrivacy] = useState<CollectionPrivacy>(
+    "private",
+  );
+
+  const collectionOptions: SaveCollectionOption[] = savedState.collections.map(
+    (collection) => ({
+      id: collection.id,
+      name: collection.name,
+      tone: collection.tone,
+      count: collectionSaveCount(savedState, collection.id),
+    }),
+  );
+
+  const openSaveSheet = () => {
+    const existing = getCafeSave(savedState, pin.id);
+    setDraftIds(existing?.collectionIds ?? []);
+    setNote(existing?.note ?? "");
+    setSheet("save");
+  };
+
+  const toggleDraftCollection = (id: string) => {
+    setDraftIds((current) =>
+      current.includes(id)
+        ? current.filter((value) => value !== id)
+        : [...current, id],
+    );
+  };
+
+  const commitSave = () => {
+    saveCafe(pin.id, { collectionIds: draftIds, note });
+    setSheet("none");
+  };
+
+  const openCreateSheet = () => {
+    setCreateName("");
+    setCreateDescription("");
+    setCreatePrivacy("private");
+    setSheet("create");
+  };
+
+  const commitCreate = () => {
+    if (createName.trim().length === 0) {
+      return;
+    }
+
+    const created = createCollection({
+      name: createName,
+      description: createDescription,
+      privacy: createPrivacy,
+    });
+
+    setDraftIds((current) => [...current, created.id]);
+    setSheet("save");
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background.cream50 }}>
@@ -137,7 +233,7 @@ function LoadedCafeDetail({
           tones={detail.photoTones}
           photoTotal={detail.photoTotal}
           saved={saved}
-          onToggleSave={onToggleSave}
+          onToggleSave={openSaveSheet}
         />
 
         <View
@@ -521,7 +617,7 @@ function LoadedCafeDetail({
           accessibilityRole="button"
           accessibilityLabel={saved ? "Saved cafe" : "Save cafe"}
           accessibilityState={{ selected: saved }}
-          onPress={onToggleSave}
+          onPress={openSaveSheet}
           style={({ pressed }) => ({
             width: 48,
             alignItems: "center",
@@ -602,6 +698,38 @@ function LoadedCafeDetail({
           </Text>
         </Pressable>
       </View>
+
+      {sheet === "save" ? (
+        <SaveCollectionSheet
+          cafeName={pin.name}
+          collections={collectionOptions}
+          selectedIds={draftIds}
+          note={note}
+          onToggleCollection={toggleDraftCollection}
+          onChangeNote={setNote}
+          onCreateNew={openCreateSheet}
+          onCancel={() => setSheet("none")}
+          onSave={commitSave}
+        />
+      ) : null}
+
+      {sheet === "create" ? (
+        <CreateCollectionSheet
+          name={createName}
+          description={createDescription}
+          privacy={createPrivacy}
+          onChangeName={setCreateName}
+          onChangeDescription={setCreateDescription}
+          onPickSuggested={setCreateName}
+          onTogglePrivacy={() =>
+            setCreatePrivacy((current) =>
+              current === "private" ? "public" : "private",
+            )
+          }
+          onCancel={() => setSheet("save")}
+          onCreate={commitCreate}
+        />
+      ) : null}
     </View>
   );
 }

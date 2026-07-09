@@ -38,6 +38,12 @@ import {
   subscribeMapFilters,
 } from "@/utils/map-filters-store";
 import {
+  getSavedState,
+  isCafeSaved,
+  quickToggleSave,
+  subscribeSaved,
+} from "@/utils/saved-store";
+import {
   AuthSession,
   AuthSessionProvider,
   loadAuthSession,
@@ -1050,7 +1056,7 @@ function MainMapHandoff({
   const [selectedCafeId, setSelectedCafeId] = useState("mostra");
   const [sheetSnapPoint, setSheetSnapPoint] =
     useState<CafeBottomSheetSnapPoint>("half");
-  const [savedCafeIds, setSavedCafeIds] = useState<string[]>([]);
+  const savedState = useSyncExternalStore(subscribeSaved, getSavedState);
   const [mapPhase, setMapPhase] = useState<"loading" | "ready">("loading");
   const [locationDenied, setLocationDenied] = useState(
     stateOverride === "denied",
@@ -1099,7 +1105,7 @@ function MainMapHandoff({
     filteredPins[0] ??
     null;
   const isSelectedCafeSaved = selectedCafe
-    ? savedCafeIds.includes(selectedCafe.id) || selectedCafe.saved === true
+    ? isCafeSaved(savedState, selectedCafe.id) || selectedCafe.saved === true
     : false;
   const isLoading = mapPhase === "loading";
   const showEmptyState =
@@ -1142,11 +1148,7 @@ function MainMapHandoff({
       return;
     }
 
-    setSavedCafeIds((current) =>
-      current.includes(selectedCafe.id)
-        ? current.filter((id) => id !== selectedCafe.id)
-        : [...current, selectedCafe.id],
-    );
+    quickToggleSave(selectedCafe.id);
   };
 
   return (
@@ -1177,7 +1179,7 @@ function MainMapHandoff({
                   label={cafe.name}
                   score={cafe.score}
                   selected={selectedCafe?.id === cafe.id}
-                  saved={savedCafeIds.includes(cafe.id) || cafe.saved}
+                  saved={isCafeSaved(savedState, cafe.id) || cafe.saved}
                   tone={cafe.tone}
                   onPress={() => selectCafe(cafe.id)}
                 />
