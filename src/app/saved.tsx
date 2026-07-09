@@ -246,6 +246,9 @@ export default function SavedScreen() {
                 key={entry.cafeId}
                 entry={entry}
                 onOpen={() => router.push(`/cafe/${entry.cafeId}`)}
+                onOpenCollection={() =>
+                  router.push(`/collection/${entry.collectionId}`)
+                }
                 onRemove={() => removeEntry(entry.cafeId)}
                 onShare={() =>
                   setShareContent(getShareCardContent(entry.cafeId) ?? null)
@@ -428,7 +431,17 @@ type EntryCardProps = {
   onShare: () => void;
 };
 
-function GridCard({ entry, onOpen, onRemove, onShare }: EntryCardProps) {
+type GridCardProps = EntryCardProps & {
+  onOpenCollection: () => void;
+};
+
+function GridCard({
+  entry,
+  onOpen,
+  onOpenCollection,
+  onRemove,
+  onShare,
+}: GridCardProps) {
   return (
     <View style={{ width: "48%" }}>
       <Pressable
@@ -463,8 +476,12 @@ function GridCard({ entry, onOpen, onRemove, onShare }: EntryCardProps) {
               ♥
             </Text>
           </View>
-          <View
-            style={{
+          {/* The collection pill doubles as the entry into collection detail. */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Open collection ${entry.collectionLabel}`}
+            onPress={onOpenCollection}
+            style={({ pressed }) => ({
               position: "absolute",
               left: theme.spacing.xs + 1,
               bottom: theme.spacing.xs + 1,
@@ -472,7 +489,8 @@ function GridCard({ entry, onOpen, onRemove, onShare }: EntryCardProps) {
               paddingHorizontal: theme.spacing.xs + 2,
               borderRadius: theme.radius.chip,
               backgroundColor: theme.colors.surface.overlayDark,
-            }}
+              opacity: pressed ? 0.7 : 1,
+            })}
           >
             <Text
               style={{
@@ -484,7 +502,7 @@ function GridCard({ entry, onOpen, onRemove, onShare }: EntryCardProps) {
             >
               {entry.collectionLabel}
             </Text>
-          </View>
+          </Pressable>
         </View>
         <View
           style={{

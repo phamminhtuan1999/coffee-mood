@@ -7,10 +7,14 @@ import {
   getCafeSave,
   getSavedState,
   isCafeSaved,
+  orderedCollectionCafeIds,
   quickToggleSave,
+  reloadSavedStore,
+  removeCafeFromCollection,
   removeCafeSave,
   resetSavedStore,
   saveCafe,
+  updateCollection,
 } from "@/utils/saved-store";
 
 beforeEach(() => {
@@ -187,5 +191,122 @@ describe("persistence", () => {
     resetSavedStore();
 
     expect(isCafeSaved(getSavedState(), "mostra")).toBe(false);
+  });
+});
+
+describe("collection editing (US-024)", () => {
+  it("updates name, description, privacy, tone, and order", () => {
+    updateCollection("work-spots", {
+      name: "Best Work Cafés in San Diego",
+      description: "Reliable Wi-Fi and outlets you can actually find.",
+      privacy: "public",
+      tone: "roasted",
+      cafeOrder: ["hearth", "marigold"],
+    });
+
+    const collection = getSavedState().collections.find(
+      (candidate) => candidate.id === "work-spots",
+    );
+
+    expect(collection?.name).toBe("Best Work Cafés in San Diego");
+    expect(collection?.description).toBe(
+      "Reliable Wi-Fi and outlets you can actually find.",
+    );
+    expect(collection?.privacy).toBe("public");
+    expect(collection?.tone).toBe("roasted");
+    expect(collection?.cafeOrder).toEqual(["hearth", "marigold"]);
+  });
+
+  it("ignores empty names and unknown collections", () => {
+    updateCollection("work-spots", { name: "   " });
+    updateCollection("ghost", { name: "Ghost" });
+
+    const collection = getSavedState().collections.find(
+      (candidate) => candidate.id === "work-spots",
+    );
+
+    expect(collection?.name).toBe("Work Spots");
+  });
+
+  it("survives a reload: persisted edits win over the seed", () => {
+    updateCollection("work-spots", { tone: "roasted", privacy: "public" });
+    reloadSavedStore();
+
+    const collection = getSavedState().collections.find(
+      (candidate) => candidate.id === "work-spots",
+    );
+
+    expect(collection?.tone).toBe("roasted");
+    expect(collection?.privacy).toBe("public");
+  });
+
+  it("parses legacy state without cafeOrder", () => {
+    saveCafe("mostra", { collectionIds: ["want-to-try"], note: "" });
+
+    const raw = JSON.parse(localStorage.getItem("cafemood.saved.v1") as string);
+    for (const collection of raw.collections) {
+      delete collection.cafeOrder;
+    }
+    localStorage.setItem("cafemood.saved.v1", JSON.stringify(raw));
+    reloadSavedStore();
+
+    const state = getSavedState();
+    expect(
+      state.collections.every((collection) =>
+        Array.isArray(collection.cafeOrder),
+      ),
+    ).toBe(true);
+    expect(isCafeSaved(state, "mostra")).toBe(true);
+  });
+});
+
+describe("collection membership removal (US-024)", () => {
+  it("drops one membership and keeps the save for other collections", () => {
+    saveCafe("mostra", {
+      collectionIds: ["want-to-try", "aesthetic"],
+      note: "keep me",
+    });
+
+    removeCafeFromCollection("want-to-try", "mostra");
+
+    const save = getCafeSave(getSavedState(), "mostra");
+    expect(save?.collectionIds).toEqual(["aesthetic"]);
+    expect(save?.note).toBe("keep me");
+  });
+
+  it("removes the save entirely when the last membership goes", () => {
+    saveCafe("mostra", { collectionIds: ["want-to-try"], note: "" });
+
+    removeCafeFromCollection("want-to-try", "mostra");
+
+    expect(isCafeSaved(getSavedState(), "mostra")).toBe(false);
+  });
+
+  it("also drops the cafe from the collection's explicit order", () => {
+    saveCafe("mostra", { collectionIds: ["want-to-try"], note: "" });
+    saveCafe("terrace", { collectionIds: ["want-to-try"], note: "" });
+    updateCollection("want-to-try", { cafeOrder: ["terrace", "mostra"] });
+
+    removeCafeFromCollection("want-to-try", "terrace");
+
+    const collection = getSavedState().collections.find(
+      (candidate) => candidate.id === "want-to-try",
+    );
+    expect(collection?.cafeOrder).toEqual(["mostra"]);
+  });
+});
+
+describe("ordered collection cafes (US-024)", () => {
+  it("honors the explicit order and appends unlisted members", () => {
+    saveCafe("mostra", { collectionIds: ["want-to-try"], note: "" });
+    saveCafe("terrace", { collectionIds: ["want-to-try"], note: "" });
+    saveCafe("hearth", { collectionIds: ["want-to-try"], note: "" });
+    updateCollection("want-to-try", { cafeOrder: ["hearth", "ghost", "mostra"] });
+
+    expect(orderedCollectionCafeIds(getSavedState(), "want-to-try")).toEqual([
+      "hearth",
+      "mostra",
+      "terrace",
+    ]);
   });
 });

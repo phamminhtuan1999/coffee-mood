@@ -17,6 +17,9 @@ export type Collection = {
   privacy: CollectionPrivacy;
   tone: CollectionTone;
   seeded: boolean;
+  // Explicit cafe order for the collection detail screen (US-024). Cafes
+  // missing from this list fall back to save-insertion order.
+  cafeOrder: string[];
 };
 
 export type CafeSave = {
@@ -40,6 +43,7 @@ function seededCollections(): Collection[] {
     privacy: "private",
     tone: collection.tone,
     seeded: true,
+    cafeOrder: [],
   }));
 }
 
@@ -154,6 +158,7 @@ export function createCollection(input: {
     privacy: input.privacy ?? "private",
     tone: toneForIndex(state.collections.length),
     seeded: false,
+    cafeOrder: [],
   };
 
   commit({ ...state, collections: [...state.collections, collection] });
@@ -161,10 +166,106 @@ export function createCollection(input: {
   return collection;
 }
 
+export type CollectionPatch = Partial<
+  Pick<Collection, "name" | "description" | "privacy" | "tone" | "cafeOrder">
+>;
+
+// Collection editing for the US-024 edit screen. Ignores empty names so a
+// cleared field can never wipe a collection's identity.
+export function updateCollection(
+  collectionId: string,
+  patch: CollectionPatch,
+): void {
+  const state = getSavedState();
+
+  if (!state.collections.some((collection) => collection.id === collectionId)) {
+    return;
+  }
+
+  const collections = state.collections.map((collection) => {
+    if (collection.id !== collectionId) {
+      return collection;
+    }
+
+    const name = patch.name?.trim();
+
+    return {
+      ...collection,
+      name: name ? name : collection.name,
+      description: patch.description?.trim() ?? collection.description,
+      privacy: patch.privacy ?? collection.privacy,
+      tone: patch.tone ?? collection.tone,
+      cafeOrder: patch.cafeOrder ?? collection.cafeOrder,
+    };
+  });
+
+  commit({ ...state, collections });
+}
+
+// Drops a cafe from one collection only; removing its last membership removes
+// the save entirely (same semantics as the D1 sheet deselecting everything).
+export function removeCafeFromCollection(
+  collectionId: string,
+  cafeId: string,
+): void {
+  const state = getSavedState();
+  const save = state.saves[cafeId];
+
+  if (!save || !save.collectionIds.includes(collectionId)) {
+    return;
+  }
+
+  const collectionIds = save.collectionIds.filter((id) => id !== collectionId);
+  const nextSaves = { ...state.saves };
+
+  if (collectionIds.length === 0) {
+    delete nextSaves[cafeId];
+  } else {
+    nextSaves[cafeId] = { ...save, collectionIds };
+  }
+
+  const collections = state.collections.map((collection) =>
+    collection.id === collectionId
+      ? {
+          ...collection,
+          cafeOrder: collection.cafeOrder.filter((id) => id !== cafeId),
+        }
+      : collection,
+  );
+
+  commit({ ...state, collections, saves: nextSaves });
+}
+
+// Ordered member ids for a collection: explicit cafeOrder entries that are
+// still members first, then remaining members in save-insertion order.
+export function orderedCollectionCafeIds(
+  state: SavedState,
+  collectionId: string,
+): string[] {
+  const members = Object.entries(state.saves)
+    .filter(([, save]) => save.collectionIds.includes(collectionId))
+    .map(([cafeId]) => cafeId);
+  const order =
+    state.collections.find((collection) => collection.id === collectionId)
+      ?.cafeOrder ?? [];
+  const ordered = order.filter((cafeId) => members.includes(cafeId));
+
+  return [
+    ...ordered,
+    ...members.filter((cafeId) => !ordered.includes(cafeId)),
+  ];
+}
+
 // Test-only reset so specs start from a clean seeded state.
 export function resetSavedStore(): void {
   cached = null;
   localStorage.removeItem(SAVED_KEY);
+}
+
+// Test-only: drops the in-memory cache without touching persisted state so
+// specs can simulate an app relaunch.
+export function reloadSavedStore(): void {
+  cached = null;
 }
 
 function slugify(name: string): string {
@@ -223,11 +324,14 @@ function parseCollections(value: unknown): Collection[] {
       description:
         typeof candidate.description === "string" ? candidate.description : "",
       privacy: isPrivacy(candidate.privacy) ? candidate.privacy : "private",
-      tone: (existing?.tone ??
-        (typeof candidate.tone === "string"
-          ? (candidate.tone as CollectionTone)
-          : "terracotta")) as CollectionTone,
+      tone: (typeof candidate.tone === "string"
+        ? (candidate.tone as CollectionTone)
+        : (existing?.tone ?? "terracotta")) as CollectionTone,
       seeded: existing !== undefined,
+      // Pre-US-024 state has no cafeOrder; default keeps legacy data valid.
+      cafeOrder: Array.isArray(candidate.cafeOrder)
+        ? candidate.cafeOrder.filter((id): id is string => typeof id === "string")
+        : [],
     });
   }
 
