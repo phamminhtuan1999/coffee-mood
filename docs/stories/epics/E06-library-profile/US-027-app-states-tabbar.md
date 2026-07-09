@@ -85,7 +85,7 @@ When updating durable proof status, use numeric booleans:
 ## Evidence
 
 - Unit/lint/type gate: `rtk proxy npx tsc --noEmit`, `rtk proxy npm run lint`,
-  `rtk proxy npx jest` - 46 suites, 321 tests passing (18 new; route-planner
+  `rtk proxy npx jest` - 46 suites, 321 tests passing (9 new; route-planner
   and saved-library suites updated for the shared bar).
 - Simulator smoke (iPhone 15 Pro, iOS 17.2, Expo Go via Metro
   `exp://127.0.0.1:8081`):
