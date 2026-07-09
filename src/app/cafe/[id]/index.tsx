@@ -11,6 +11,7 @@ import {
   CreateCollectionSheet,
   LoadingSkeleton,
   SaveCollectionSheet,
+  ShareCafeSheet,
 } from "@/components/ui";
 import type { SaveCollectionOption } from "@/components/ui";
 import { theme } from "@/constants/theme";
@@ -26,6 +27,8 @@ import type { CafeBestTime, CafeDetail, CafeSimilar } from "@/data/cafe-details"
 import { cafeMapPins } from "@/data/map-pins";
 import type { CafeMapPin, CafeMapPinTone } from "@/data/map-pins";
 import { getReviewInsight } from "@/data/review-insights";
+import { getShareCardContent } from "@/data/share-card";
+import type { ShareAction } from "@/data/share-card";
 import {
   collectionSaveCount,
   createCollection,
@@ -41,8 +44,8 @@ import type { CollectionPrivacy } from "@/utils/saved-store";
 // (same deep-link pattern as ?discovery= on the map route).
 type DetailStateOverride = "loading" | "error" | "limited";
 
-// QA override to open a save/create sheet on load for simulator smoke.
-type DetailSheetOverride = "save" | "create";
+// QA override to open a save/create/share sheet on load for simulator smoke.
+type DetailSheetOverride = "save" | "create" | "share";
 
 type DetailPhase = "loading" | "ready" | "error";
 
@@ -80,7 +83,9 @@ function parseDetailOverride(
 function parseSheetOverride(
   value: string | string[] | undefined,
 ): DetailSheetOverride | undefined {
-  return value === "save" || value === "create" ? value : undefined;
+  return value === "save" || value === "create" || value === "share"
+    ? value
+    : undefined;
 }
 
 export default function CafeDetailScreen() {
@@ -145,7 +150,7 @@ type LoadedCafeDetailProps = {
   sheetOverride?: DetailSheetOverride;
 };
 
-type DetailSheet = "none" | "save" | "create";
+type DetailSheet = "none" | "save" | "create" | "share";
 
 function LoadedCafeDetail({
   pin,
@@ -179,6 +184,15 @@ function LoadedCafeDetail({
       count: collectionSaveCount(savedState, collection.id),
     }),
   );
+
+  const shareContent = getShareCardContent(pin.id);
+
+  const openShareSheet = () => setSheet("share");
+
+  // Copy Link / Share Image / Send to Friend stay inert until a clipboard /
+  // view-shot / share provider lands (decision 0015), matching the other
+  // provider-deferred actions (Directions, Add to Route, Open in Google Maps).
+  const handleShareAction = (_action: ShareAction) => {};
 
   const openSaveSheet = () => {
     const existing = getCafeSave(savedState, pin.id);
@@ -234,6 +248,7 @@ function LoadedCafeDetail({
           photoTotal={detail.photoTotal}
           saved={saved}
           onToggleSave={openSaveSheet}
+          onOpenShare={openShareSheet}
         />
 
         <View
@@ -585,7 +600,7 @@ function LoadedCafeDetail({
               marginTop: theme.spacing.lg - 2,
             }}
           >
-            <TextAction label="Share" />
+            <TextAction label="Share" onPress={openShareSheet} />
             <TextActionDivider />
             <TextAction
               label="View Photos"
@@ -730,6 +745,14 @@ function LoadedCafeDetail({
           onCreate={commitCreate}
         />
       ) : null}
+
+      {sheet === "share" && shareContent ? (
+        <ShareCafeSheet
+          content={shareContent}
+          onAction={handleShareAction}
+          onClose={() => setSheet("none")}
+        />
+      ) : null}
     </View>
   );
 }
@@ -739,6 +762,7 @@ type HeroCarouselProps = {
   photoTotal: number;
   saved: boolean;
   onToggleSave: () => void;
+  onOpenShare: () => void;
 };
 
 function HeroCarousel({
@@ -746,6 +770,7 @@ function HeroCarousel({
   photoTotal,
   saved,
   onToggleSave,
+  onOpenShare,
 }: HeroCarouselProps) {
   const insets = useSafeAreaInsets();
   const [heroWidth, setHeroWidth] = useState(0);
@@ -866,7 +891,11 @@ function HeroCarousel({
           gap: theme.spacing.xs,
         }}
       >
-        <HeroGlassButton symbol="sf:arrow.up.right" label="Share cafe" />
+        <HeroGlassButton
+          symbol="sf:arrow.up.right"
+          label="Share cafe"
+          onPress={onOpenShare}
+        />
         <HeroGlassButton
           symbol={saved ? "sf:heart.fill" : "sf:heart"}
           label={saved ? "Saved cafe" : "Save cafe"}
