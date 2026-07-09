@@ -18,6 +18,10 @@ jest.mock("expo-router", () => ({
     back: (...args: unknown[]) => mockBack(...args),
     push: (...args: unknown[]) => mockPush(...args),
   },
+  useRouter: () => ({
+    back: (...args: unknown[]) => mockBack(...args),
+    push: (...args: unknown[]) => mockPush(...args),
+  }),
   useLocalSearchParams: () => mockParams,
 }));
 

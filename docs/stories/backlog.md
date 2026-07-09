@@ -1,7 +1,7 @@
 # Story Backlog
 
 Populated from the CafeMood Map spec (intake #1, 2026-07-06). US-001 through
-US-026 are `implemented`; US-027 and US-028 remain
+US-027 are `implemented` (E06 complete); US-028 remains
 `planned`. Design
 source: extracted handoff under `docs/design/project/` (see
 `docs/product/overview.md`); cloud original on
@@ -28,13 +28,15 @@ commitments.
 | E03-map-discovery | Map home, sheet, search, AI finder, filters, states | Batch 2 | US-008..013 | implemented |
 | E04-cafe-detail-save | Detail, gallery, insight, save, share | Batch 3 | US-014..018 | implemented |
 | E05-planning-contribution | Routes, work/date planners, check-in, clips | Batch 4 | US-019..022 | implemented |
-| E06-library-profile | Saved, collections, taste, profile, states, tabs | Batch 5 | US-023..027 | planned |
+| E06-library-profile | Saved, collections, taste, profile, states, tabs | Batch 5 | US-023..027 | implemented |
 | E07-qa-demo-polish | Full QA, prototype wiring, demo polish | Batch 6 | US-028 | planned |
 
-Suggested implementation order: E03, E04, and E05 are complete; continue with
-E06, then E07. Deferred provider work (map provider per decision 0010, AI
-provider per decision 0013, client-side saves per decision 0014, share
-provider per decision 0015, route nav/save/share per decision 0016, date plan
-providers per decision 0017, contribution media/pipeline per decision 0018)
-must expand to the high-risk template and confirm or supersede decision 0008
-before real provider implementation.
+Suggested implementation order: E03 through E06 are complete; E07 (US-028
+full-app QA) is the remaining story. Deferred provider work (map provider per
+decision 0010, AI provider per decision 0013, client-side saves per decision
+0014, share provider per decision 0015, route nav/save/share per decision
+0016, date plan providers per decision 0017, contribution media/pipeline per
+decision 0018, collection editing extensions per decision 0019, local account
+semantics and notification delivery per decision 0020) must expand to the
+high-risk template and confirm or supersede decision 0008 before real
+provider implementation.

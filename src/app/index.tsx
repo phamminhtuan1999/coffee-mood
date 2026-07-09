@@ -16,6 +16,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
+  AppTabBar,
   CafeBottomSheetShell,
   CafeButton,
   CafeImageCard,
@@ -31,6 +32,7 @@ import type { CafeBottomSheetSnapPoint } from "@/components/ui";
 import { theme } from "@/constants/theme";
 import { cafeMapPins } from "@/data/map-pins";
 import type { CafeMapPin } from "@/data/map-pins";
+import { OFFLINE_STATE } from "@/data/system-states";
 import { activeMapFilterCount, applyMapFilters } from "@/utils/map-filters";
 import {
   getMapFilters,
@@ -146,13 +148,18 @@ const filtersRoute = "/filters" as Href;
 export const MAP_LOADING_MS = 900;
 
 // QA override for deterministic simulator smoke of discovery states
-// (same deep-link pattern as the ai-finder ?prompt= param).
-type DiscoveryStateOverride = "loading" | "empty" | "denied";
+// (same deep-link pattern as the ai-finder ?prompt= param). "offline" stands
+// in for real connectivity detection, which needs a network provider
+// (US-027; see the system-states catalog).
+type DiscoveryStateOverride = "loading" | "empty" | "denied" | "offline";
 
 function parseDiscoveryOverride(
   value: string | string[] | undefined,
 ): DiscoveryStateOverride | undefined {
-  return value === "loading" || value === "empty" || value === "denied"
+  return value === "loading" ||
+    value === "empty" ||
+    value === "denied" ||
+    value === "offline"
     ? value
     : undefined;
 }
@@ -309,7 +316,6 @@ export default function Index() {
         profile={tasteProfile}
         selection={locationSelection}
         stateOverride={discoveryOverride}
-        onEditTaste={() => setStep("taste-onboarding")}
         onChooseLocation={() => setStep("manual-location")}
       />
     );
@@ -1042,7 +1048,6 @@ type MainMapHandoffProps = {
   profile: TasteProfile | null;
   selection: LocationSelection | null;
   stateOverride?: DiscoveryStateOverride;
-  onEditTaste: () => void;
   onChooseLocation: () => void;
 };
 
@@ -1050,7 +1055,6 @@ function MainMapHandoff({
   profile,
   selection,
   stateOverride,
-  onEditTaste,
   onChooseLocation,
 }: MainMapHandoffProps) {
   const insets = useSafeAreaInsets();
@@ -1100,9 +1104,14 @@ function MainMapHandoff({
 
   const mapFilters = useSyncExternalStore(subscribeMapFilters, getMapFilters);
   const activeFilters = activeMapFilterCount(mapFilters);
-  const filteredPins = forceEmpty
-    ? []
-    : applyMapFilters(filterCafePins(activeChip), mapFilters);
+  const isOffline = stateOverride === "offline";
+  // Offline surfaces the saved cafes (library-profile.md): the local store
+  // keeps working, so saved pins stay on the map while discovery pauses.
+  const filteredPins = isOffline
+    ? cafeMapPins.filter((cafe) => isCafeSaved(savedState, cafe.id))
+    : forceEmpty
+      ? []
+      : applyMapFilters(filterCafePins(activeChip), mapFilters);
   const selectedCafe =
     filteredPins.find((cafe) => cafe.id === selectedCafeId) ??
     filteredPins[0] ??
@@ -1112,7 +1121,7 @@ function MainMapHandoff({
     : false;
   const isLoading = mapPhase === "loading";
   const showEmptyState =
-    !isLoading && !locationDenied && filteredPins.length === 0;
+    !isLoading && !locationDenied && !isOffline && filteredPins.length === 0;
 
   const selectCafe = (cafeId: string) => {
     setSelectedCafeId(cafeId);
@@ -1457,7 +1466,27 @@ function MainMapHandoff({
         </View>
       ) : null}
 
-      {!isLoading && !locationDenied && selectedCafe ? (
+      {isOffline && !isLoading ? (
+        <View
+          style={{
+            position: "absolute",
+            left: theme.spacing.sm,
+            right: theme.spacing.sm,
+            bottom: 100,
+            zIndex: 20,
+          }}
+        >
+          <EmptyStateCard
+            title={OFFLINE_STATE.title}
+            copy={OFFLINE_STATE.copy}
+            cta={OFFLINE_STATE.cta}
+            tone={OFFLINE_STATE.tone}
+            onCtaPress={() => router.push("/saved" as Href)}
+          />
+        </View>
+      ) : null}
+
+      {!isLoading && !locationDenied && !isOffline && selectedCafe ? (
         <MapHomePreviewSheet
           cafe={selectedCafe}
           locationLabel={selection?.label ?? "Current area"}
@@ -1470,10 +1499,7 @@ function MainMapHandoff({
         />
       ) : null}
 
-      <MapTabBar
-        bottomInset={insets.bottom}
-        onEditTaste={onEditTaste}
-      />
+      <AppTabBar active="Map" />
     </View>
   );
 }
@@ -1655,96 +1681,6 @@ function MapHomePreviewSheet({
         onSave={onSave}
         onOpenDetail={onOpenDetail}
       />
-    </View>
-  );
-}
-
-type MapTabBarProps = {
-  bottomInset: number;
-  onEditTaste: () => void;
-};
-
-function MapTabBar({ bottomInset, onEditTaste }: MapTabBarProps) {
-  const router = useRouter();
-  const tabs = [
-    { label: "Map", icon: "sf:map.fill", selected: true, onPress: undefined },
-    {
-      label: "Search",
-      icon: "sf:magnifyingglass",
-      selected: false,
-      onPress: () => router.push(searchRoute),
-    },
-    { label: "Saved", icon: "sf:heart", selected: false, onPress: undefined },
-    {
-      label: "Routes",
-      icon: "sf:point.topleft.down.curvedto.point.bottomright.up",
-      selected: false,
-      onPress: undefined,
-    },
-    {
-      label: "Taste",
-      icon: "sf:person.crop.circle",
-      selected: false,
-      onPress: onEditTaste,
-    },
-  ] as const;
-
-  return (
-    <View
-      style={{
-        position: "absolute",
-        left: 0,
-        right: 0,
-        bottom: 0,
-        minHeight: 74 + bottomInset,
-        flexDirection: "row",
-        alignItems: "flex-start",
-        paddingHorizontal: theme.spacing.xs,
-        paddingTop: theme.spacing.xs,
-        paddingBottom: Math.max(bottomInset, theme.spacing.sm),
-        borderTopWidth: 1,
-        borderTopColor: theme.colors.surface.borderSoft,
-        backgroundColor: theme.colors.background.cream50,
-      }}
-    >
-      {tabs.map((tab) => (
-        <Pressable
-          key={tab.label}
-          accessibilityRole="button"
-          accessibilityState={{ selected: tab.selected }}
-          onPress={tab.onPress}
-          style={({ pressed }) => ({
-            flex: 1,
-            alignItems: "center",
-            gap: theme.spacing.xxs,
-            paddingVertical: theme.spacing.xs,
-            opacity: pressed ? 0.72 : 1,
-          })}
-        >
-          <Image
-            source={tab.icon}
-            style={{
-              width: 21,
-              height: 21,
-              tintColor: tab.selected
-                ? theme.colors.text.espresso900
-                : theme.colors.text.muted,
-            }}
-          />
-          <Text
-            numberOfLines={1}
-            style={{
-              ...theme.typography.caption,
-              fontSize: 10,
-              color: tab.selected
-                ? theme.colors.text.espresso900
-                : theme.colors.text.muted,
-            }}
-          >
-            {tab.label}
-          </Text>
-        </Pressable>
-      ))}
     </View>
   );
 }

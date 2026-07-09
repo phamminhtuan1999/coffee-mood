@@ -1,5 +1,8 @@
 export { AISummaryCard } from "@/components/ui/ai-summary-card";
+export { AppTabBar, TAB_BAR_CLEARANCE } from "@/components/ui/app-tab-bar";
+export type { AppTab } from "@/components/ui/app-tab-bar";
 export { CafeButton, IconButton } from "@/components/ui/button";
+export { ErrorStateCard } from "@/components/ui/error-state-card";
 export { CafeBottomSheetShell } from "@/components/ui/cafe-bottom-sheet-shell";
 export type { CafeBottomSheetSnapPoint } from "@/components/ui/cafe-bottom-sheet-shell";
 export { CafeImageCard } from "@/components/ui/cafe-image-card";
