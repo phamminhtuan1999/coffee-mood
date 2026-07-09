@@ -687,7 +687,8 @@ function LoadedCafeDetail({
         </Pressable>
         <Pressable
           accessibilityRole="button"
-          onPress={undefined}
+          accessibilityLabel="Add to Route"
+          onPress={() => router.push("/route")}
           style={({ pressed }) => ({
             flex: 1,
             minHeight: theme.sizing.compactControl,
