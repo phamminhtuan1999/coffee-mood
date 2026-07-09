@@ -11,6 +11,7 @@ export { FilterRow } from "@/components/ui/filter-row";
 export { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 export { MapPreviewSurface } from "@/components/ui/map-preview-surface";
 export { MoodSlider } from "@/components/ui/mood-slider";
+export { RouteMapPreview } from "@/components/ui/route-map-preview";
 export { RouteStopCard } from "@/components/ui/route-stop-card";
 export { SaveCollectionSheet } from "@/components/ui/save-collection-sheet";
 export type { SaveCollectionOption } from "@/components/ui/save-collection-sheet";
