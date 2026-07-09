@@ -4,7 +4,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import type { ReactNode } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { VibeChip } from "@/components/ui";
+import { AppTabBar, VibeChip } from "@/components/ui";
 import { theme } from "@/constants/theme";
 import {
   ROUTE_DURATIONS,
@@ -56,7 +56,7 @@ export default function RoutePlannerScreen() {
         contentContainerStyle={{
           paddingHorizontal: theme.spacing.lg,
           paddingTop: Math.max(insets.top, theme.spacing.lg) + theme.spacing.xl,
-          paddingBottom: 150,
+          paddingBottom: 230,
         }}
       >
         <Text
@@ -212,15 +212,16 @@ export default function RoutePlannerScreen() {
         </View>
       </ScrollView>
 
+      {/* The Generate CTA sits above the app tab bar (US-027). */}
       <View
         style={{
           position: "absolute",
           left: 0,
           right: 0,
-          bottom: 0,
+          bottom: 74 + insets.bottom,
           paddingHorizontal: theme.spacing.lg,
           paddingTop: theme.spacing.md,
-          paddingBottom: Math.max(insets.bottom, theme.spacing.sm) + theme.spacing.screen,
+          paddingBottom: theme.spacing.sm,
           backgroundColor: theme.colors.background.cream50,
         }}
       >
@@ -251,6 +252,8 @@ export default function RoutePlannerScreen() {
           </Text>
         </Pressable>
       </View>
+
+      <AppTabBar active="Routes" />
     </View>
   );
 }

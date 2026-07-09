@@ -3,6 +3,7 @@ import { useMemo, useSyncExternalStore } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { AppTabBar, TAB_BAR_CLEARANCE } from "@/components/ui";
 import { theme } from "@/constants/theme";
 import { PROFILE_PERSONA, profileRows, profileStats } from "@/data/profile";
 import type { ProfileRowTone } from "@/data/profile";
@@ -38,7 +39,7 @@ export default function ProfileScreen() {
           paddingHorizontal: theme.spacing.lg,
           paddingTop: Math.max(insets.top, theme.spacing.lg) + theme.spacing.lg,
           paddingBottom:
-            Math.max(insets.bottom, theme.spacing.sm) + theme.spacing.xxl,
+            Math.max(insets.bottom, theme.spacing.sm) + TAB_BAR_CLEARANCE,
         }}
       >
         <View
@@ -284,6 +285,8 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
       </ScrollView>
+
+      <AppTabBar active="Profile" />
     </View>
   );
 }

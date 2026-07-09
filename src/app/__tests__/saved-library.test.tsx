@@ -24,7 +24,8 @@ describe("saved library empty state", () => {
   it("renders the D2 empty state with the Explore Cafés CTA", async () => {
     await render(<SavedScreen />);
 
-    expect(screen.getByText("Saved")).toBeTruthy();
+    // "Saved" appears in the header and the tab bar (US-027).
+    expect(screen.getAllByText("Saved").length).toBeGreaterThan(0);
     expect(screen.getByText("Your coffee map is empty.")).toBeTruthy();
 
     await fireEvent.press(screen.getByRole("button", { name: "Explore Cafés" }));

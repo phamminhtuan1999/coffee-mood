@@ -4,7 +4,7 @@ import Index, { MAP_LOADING_MS } from "@/app/index";
 import { aiUnavailableTitle } from "@/data/ai-finder-fixtures";
 import { defaultMapFilters } from "@/utils/map-filters";
 import type { MapFilters } from "@/utils/map-filters";
-import { resetSavedStore } from "@/utils/saved-store";
+import { resetSavedStore, saveCafe } from "@/utils/saved-store";
 
 const mockPush = jest.fn();
 const mockBack = jest.fn();
@@ -223,6 +223,31 @@ describe("map sheet to cafe detail wiring", () => {
     await fireEvent.press(screen.getByLabelText("Open Mostra Coffee details"));
 
     expect(mockPush).toHaveBeenCalledWith("/cafe/mostra");
+  });
+});
+
+describe("map offline state (US-027)", () => {
+  it("surfaces saved cafes with the offline card under the QA override", async () => {
+    saveCafe("marigold", { collectionIds: ["work-spots"], note: "" });
+    mockParams = { discovery: "offline" };
+
+    await render(<Index />);
+    await settleMapLoading();
+
+    expect(screen.getByText("You're offline")).toBeTruthy();
+    expect(
+      screen.getByText(
+        "Saved cafés and notes still work. The map will catch up.",
+      ),
+    ).toBeTruthy();
+
+    // Only the saved cafe stays pinned on the map.
+    expect(screen.getByLabelText("Marigold & Oak")).toBeTruthy();
+    expect(screen.queryByLabelText("Mostra Coffee")).toBeNull();
+
+    await fireEvent.press(screen.getByRole("button", { name: "View saved" }));
+
+    expect(mockPush).toHaveBeenCalledWith("/saved");
   });
 });
 

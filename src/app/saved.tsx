@@ -3,7 +3,7 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { EmptyStateCard, ShareCafeSheet } from "@/components/ui";
+import { AppTabBar, EmptyStateCard, ShareCafeSheet, TAB_BAR_CLEARANCE } from "@/components/ui";
 import { theme } from "@/constants/theme";
 import type { CafeMapPinTone } from "@/data/map-pins";
 import {
@@ -204,7 +204,8 @@ export default function SavedScreen() {
         contentContainerStyle={{
           paddingHorizontal: theme.spacing.screen,
           paddingTop: theme.spacing.xxs,
-          paddingBottom: Math.max(insets.bottom, theme.spacing.sm) + theme.spacing.xxl,
+          paddingBottom:
+            Math.max(insets.bottom, theme.spacing.sm) + TAB_BAR_CLEARANCE,
         }}
       >
         {savedCount === 0 ? (
@@ -272,6 +273,8 @@ export default function SavedScreen() {
           </View>
         )}
       </ScrollView>
+
+      <AppTabBar active="Saved" />
 
       {shareContent ? (
         <ShareCafeSheet
