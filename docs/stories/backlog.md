@@ -30,7 +30,7 @@ commitments.
 | E05-planning-contribution | Routes, work/date planners, check-in, clips | Batch 4 | US-019..022 | implemented |
 | E06-library-profile | Saved, collections, taste, profile, states, tabs | Batch 5 | US-023..027 | implemented |
 | E07-qa-demo-polish | Full QA, prototype wiring, demo polish | Batch 6 | US-028 | implemented |
-| E08-live-providers | Real provider integrations (AI, map) | Deferral trail | US-029..030 | in progress |
+| E08-live-providers | Real provider integrations (AI, map, cafes) | Deferral trail | US-029..031 | implemented |
 
 Suggested implementation order: all epics are complete. E07 (US-028 full-app
 QA) passed with two polish defects found and fixed (see
@@ -39,10 +39,12 @@ finder via a Supabase Edge Function calling Groq, decision 0022 superseding
 the Gemini pick in 0021 after a billing-gated free-tier 429) is implemented
 and live-verified; US-030 (live map home via react-native-maps / Apple Maps,
 decision 0023 superseding 0010's Mapbox proposal — no accounts, Expo Go
-preserved) is implemented and simulator-verified. Remaining deferred provider
-work (map data layer per
-decision 0010, AI provider per decision 0013, client-side saves per decision
-0014, share provider per decision 0015, route nav/save/share per decision
+preserved) is implemented and simulator-verified; US-031 (real cafes on the
+map home from the keyless OpenStreetMap Overpass API around the device
+location, decision 0024, fixtures as fallback) is implemented and
+live-verified. Remaining deferred provider
+work (directions/navigation per decision 0010, backend persistence of saves
+per decision 0014, share provider per decision 0015, route nav/save/share per decision
 0016, date plan providers per decision 0017, contribution media/pipeline per
 decision 0018, collection editing extensions per decision 0019, local account
 semantics and notification delivery per decision 0020) must expand to the

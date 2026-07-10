@@ -26,6 +26,7 @@ import {
 import type { CafeBestTime, CafeDetail, CafeSimilar } from "@/data/cafe-details";
 import { cafeMapPins } from "@/data/map-pins";
 import type { CafeMapPin, CafeMapPinTone } from "@/data/map-pins";
+import { getLiveCafeDetail, getLiveCafePin } from "@/utils/live-cafes";
 import { getReviewInsight } from "@/data/review-insights";
 import { getShareCardContent } from "@/data/share-card";
 import type { ShareAction } from "@/data/share-card";
@@ -97,8 +98,11 @@ export default function CafeDetailScreen() {
   const cafeId = typeof params.id === "string" ? params.id : "";
   const stateOverride = parseDetailOverride(params.state);
   const sheetOverride = parseSheetOverride(params.sheet);
-  const pin = cafeMapPins.find((cafe) => cafe.id === cafeId);
-  const detail = getCafeDetail(cafeId);
+  // Live map cafes (US-031) aren't in the fixtures; they resolve from the
+  // live-cafes cache and render the designed limited-data detail.
+  const pin =
+    cafeMapPins.find((cafe) => cafe.id === cafeId) ?? getLiveCafePin(cafeId);
+  const detail = getCafeDetail(cafeId) ?? getLiveCafeDetail(cafeId);
   const [phase, setPhase] = useState<DetailPhase>("loading");
   const [retryAttempt, setRetryAttempt] = useState(0);
   const savedState = useSyncExternalStore(subscribeSaved, getSavedState);
