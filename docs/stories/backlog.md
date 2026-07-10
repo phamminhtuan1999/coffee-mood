@@ -36,8 +36,10 @@ Suggested implementation order: E03 through E06 are complete; E07 (US-028
 full-app QA) remains. Provider integration has begun in E08: US-029 (live AI
 finder via a Supabase Edge Function calling Groq, decision 0022 superseding
 the Gemini pick in 0021 after a billing-gated free-tier 429) is implemented
-and live-verified; US-030 (live
-Mapbox map) is planned. Remaining deferred provider work (map provider per
+and live-verified; US-030 (live map home via react-native-maps / Apple Maps,
+decision 0023 superseding 0010's Mapbox proposal — no accounts, Expo Go
+preserved) is implemented and simulator-verified. Remaining deferred provider
+work (map data layer per
 decision 0010, AI provider per decision 0013, client-side saves per decision
 0014, share provider per decision 0015, route nav/save/share per decision
 0016, date plan providers per decision 0017, contribution media/pipeline per
