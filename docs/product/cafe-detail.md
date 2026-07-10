@@ -18,7 +18,10 @@ Editorial and photo-rich, never dense Yelp-style information.
 
 States: loading (image/score/summary skeletons), error ("Couldn't load this
 café." CTA "Try Again"), limited data ("Limited vibe data — we're still
-learning about this spot.").
+learning about this spot."). Live map cafes (US-031, decision 0024) open in
+the limited-data state with real OSM facts (address, hours, Wi-Fi, outdoor
+seating) and estimate-labeled scores; a live detail opened without the map's
+session cache falls back to the error state.
 
 ## Photo / Video Gallery
 

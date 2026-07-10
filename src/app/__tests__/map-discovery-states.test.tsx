@@ -23,6 +23,16 @@ jest.mock("expo-location", () => ({
     mockGetPermissions(...args),
   requestForegroundPermissionsAsync: (...args: unknown[]) =>
     mockRequestPermissions(...args),
+  getCurrentPositionAsync: jest.fn(),
+}));
+
+// This suite covers the deterministic fixture world; live cafes (US-031)
+// stay out of the way by resolving to the fixture fallback.
+jest.mock("@/utils/live-cafes", () => ({
+  fetchLiveCafes: jest.fn().mockResolvedValue(null),
+  getLiveCafePin: jest.fn(),
+  getLiveCafeDetail: jest.fn(),
+  isLiveCafeId: (id: string) => id.startsWith("osm-"),
 }));
 
 jest.mock("@/utils/taste-profile", () => ({
