@@ -4,7 +4,9 @@ The heart of the product. Map-first and visual-first — never a listing app.
 
 ## Main Map Home
 
-Full-screen custom-styled warm map (see `design-system.md` map style) with:
+Full-screen interactive map — live Apple Maps via react-native-maps as of
+US-030/decision 0023; the design comps' custom warm map style applies only if
+the provider ever moves to Mapbox — with:
 
 - Floating rounded search bar — placeholder "Search cafés, vibes, or
   neighborhoods".
@@ -67,5 +69,9 @@ Chips + sliders + warm grouped cards; Apply / Reset.
 
 - Map provider and AI provider are external systems (high-risk lane at
   implementation; providers proposed in decision 0008, AI server-side only).
+- Map home is live: Apple Maps via react-native-maps (decision 0023,
+  superseding 0010's Mapbox proposal); cafe pins are geographic markers over
+  curated San Diego fixture coordinates. AI finder is live via
+  Groq/Supabase (decisions 0021/0022).
 - Semantic search quality depends on vibe/score data model — schema is a
   data-model risk flag when defined.

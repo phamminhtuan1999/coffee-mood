@@ -3,6 +3,16 @@ import type { PricePreference } from "@/utils/taste-profile";
 
 export type CafeMapPinTone = "terracotta" | "latte" | "olive";
 
+export type MapCoordinate = {
+  latitude: number;
+  longitude: number;
+};
+
+export type MapRegion = MapCoordinate & {
+  latitudeDelta: number;
+  longitudeDelta: number;
+};
+
 export type CafeMapPin = {
   id: string;
   name: string;
@@ -23,10 +33,8 @@ export type CafeMapPin = {
   price: PricePreference;
   treats: FilterTreat[];
   saved?: boolean;
-  top?: number;
-  left?: number;
-  right?: number;
-  bottom?: number;
+  latitude: number;
+  longitude: number;
 };
 
 export const cafeMapPins: CafeMapPin[] = [
@@ -58,8 +66,8 @@ export const cafeMapPins: CafeMapPin[] = [
     moodScores: { aesthetic: 9.1, work: 6.5, noise: 6 },
     price: "$$",
     treats: ["Specialty coffee", "Dessert"],
-    top: 224,
-    left: 76,
+    latitude: 32.75,
+    longitude: -117.13,
   },
   {
     id: "marigold",
@@ -89,8 +97,8 @@ export const cafeMapPins: CafeMapPin[] = [
     moodScores: { aesthetic: 6.4, work: 8.7, noise: 3 },
     price: "$$",
     treats: [],
-    top: 318,
-    right: 54,
+    latitude: 32.7504,
+    longitude: -117.1355,
   },
   {
     id: "terrace",
@@ -120,8 +128,8 @@ export const cafeMapPins: CafeMapPin[] = [
     moodScores: { aesthetic: 8.2, work: 5.5, noise: 5 },
     price: "$$$",
     treats: ["Matcha", "Good for dates"],
-    bottom: 266,
-    left: 128,
+    latitude: 32.7494,
+    longitude: -117.1245,
   },
   {
     id: "hearth",
@@ -151,7 +159,55 @@ export const cafeMapPins: CafeMapPin[] = [
     moodScores: { aesthetic: 5.8, work: 7.8, noise: 4 },
     price: "$",
     treats: [],
-    bottom: 344,
-    right: 122,
+    latitude: 32.751,
+    longitude: -117.1385,
   },
 ];
+
+// The "+3 more" cluster pin sits just past Hearth toward University Heights.
+export const CLUSTER_PIN_COORDINATE: MapCoordinate = {
+  latitude: 32.7514,
+  longitude: -117.1235,
+};
+
+const REGION_PADDING = 1.5;
+const MIN_LATITUDE_DELTA = 0.04;
+const MIN_LONGITUDE_DELTA = 0.02;
+// The half-height preview sheet covers the lower part of the screen, so the
+// camera center is biased south of the pin centroid: pins then render in the
+// visible band between the vibe chips and the sheet.
+const SHEET_LATITUDE_BIAS = 0.22;
+
+function computeMapHomeRegion(): MapRegion {
+  const latitudes = [
+    ...cafeMapPins.map((cafe) => cafe.latitude),
+    CLUSTER_PIN_COORDINATE.latitude,
+  ];
+  const longitudes = [
+    ...cafeMapPins.map((cafe) => cafe.longitude),
+    CLUSTER_PIN_COORDINATE.longitude,
+  ];
+  const minLatitude = Math.min(...latitudes);
+  const maxLatitude = Math.max(...latitudes);
+  const minLongitude = Math.min(...longitudes);
+  const maxLongitude = Math.max(...longitudes);
+
+  const latitudeDelta = Math.max(
+    (maxLatitude - minLatitude) * REGION_PADDING,
+    MIN_LATITUDE_DELTA,
+  );
+
+  return {
+    latitude:
+      (minLatitude + maxLatitude) / 2 - latitudeDelta * SHEET_LATITUDE_BIAS,
+    longitude: (minLongitude + maxLongitude) / 2,
+    latitudeDelta,
+    longitudeDelta: Math.max(
+      (maxLongitude - minLongitude) * REGION_PADDING,
+      MIN_LONGITUDE_DELTA,
+    ),
+  };
+}
+
+// Initial camera for the map home; the current-location FAB re-centers here.
+export const MAP_HOME_REGION: MapRegion = computeMapHomeRegion();

@@ -1,6 +1,7 @@
 import * as Location from "expo-location";
 import { Image } from "expo-image";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import MapView, { Marker } from "react-native-maps";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import type { Href } from "expo-router";
@@ -30,7 +31,11 @@ import {
 } from "@/components/ui";
 import type { CafeBottomSheetSnapPoint } from "@/components/ui";
 import { theme } from "@/constants/theme";
-import { cafeMapPins } from "@/data/map-pins";
+import {
+  cafeMapPins,
+  CLUSTER_PIN_COORDINATE,
+  MAP_HOME_REGION,
+} from "@/data/map-pins";
 import type { CafeMapPin } from "@/data/map-pins";
 import { OFFLINE_STATE } from "@/data/system-states";
 import { activeMapFilterCount, applyMapFilters } from "@/utils/map-filters";
@@ -1064,6 +1069,7 @@ function MainMapHandoff({
   const [sheetSnapPoint, setSheetSnapPoint] =
     useState<CafeBottomSheetSnapPoint>("half");
   const savedState = useSyncExternalStore(subscribeSaved, getSavedState);
+  const mapRef = useRef<MapView>(null);
   const [mapPhase, setMapPhase] = useState<"loading" | "ready">("loading");
   const [locationDenied, setLocationDenied] = useState(
     stateOverride === "denied",
@@ -1171,21 +1177,23 @@ function MainMapHandoff({
         backgroundColor: theme.colors.background.warmPaper,
       }}
     >
-      <MapPreviewSurface>
-        {isLoading ? (
-          <SkeletonMapPins />
-        ) : (
-          <>
-            {filteredPins.map((cafe) => (
-              <View
+      <MapView
+        ref={mapRef}
+        style={{ position: "absolute", inset: 0 }}
+        initialRegion={MAP_HOME_REGION}
+        accessibilityLabel="Map of cafes nearby"
+      >
+        {isLoading
+          ? null
+          : filteredPins.map((cafe) => (
+              <Marker
                 key={cafe.id}
-                style={{
-                  position: "absolute",
-                  top: cafe.top,
-                  left: cafe.left,
-                  right: cafe.right,
-                  bottom: cafe.bottom,
+                coordinate={{
+                  latitude: cafe.latitude,
+                  longitude: cafe.longitude,
                 }}
+                anchor={{ x: 0.5, y: 1 }}
+                onPress={() => selectCafe(cafe.id)}
               >
                 <PhotoMapPin
                   label={cafe.name}
@@ -1195,31 +1203,23 @@ function MainMapHandoff({
                   tone={cafe.tone}
                   onPress={() => selectCafe(cafe.id)}
                 />
-              </View>
+              </Marker>
             ))}
-            {filteredPins.length > 0 ? (
-              <View style={{ position: "absolute", top: 420, right: 42 }}>
-                <ClusteredPhotoPin
-                  count={3}
-                  label="Cluster of cafes near University Heights"
-                  onPress={() => selectCafe("hearth")}
-                />
-              </View>
-            ) : null}
-          </>
-        )}
-        <View
-          pointerEvents="none"
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: 240,
-            backgroundColor: theme.colors.surface.glassCream,
-          }}
-        />
-      </MapPreviewSurface>
+        {!isLoading && filteredPins.length > 0 ? (
+          <Marker
+            coordinate={CLUSTER_PIN_COORDINATE}
+            anchor={{ x: 0.5, y: 1 }}
+            onPress={() => selectCafe("hearth")}
+          >
+            <ClusteredPhotoPin
+              count={3}
+              label="Cluster of cafes near University Heights"
+              onPress={() => selectCafe("hearth")}
+            />
+          </Marker>
+        ) : null}
+      </MapView>
+      {isLoading ? <SkeletonMapPins /> : null}
 
       <Pressable
         accessibilityRole="button"
@@ -1353,7 +1353,10 @@ function MainMapHandoff({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Use current map location"
-        onPress={() => selectCafe("mostra")}
+        onPress={() => {
+          mapRef.current?.animateToRegion(MAP_HOME_REGION, 400);
+          selectCafe("mostra");
+        }}
         style={({ pressed }) => ({
           position: "absolute",
           right: theme.spacing.md,
@@ -1504,6 +1507,20 @@ function MainMapHandoff({
   );
 }
 
+// Decorative placeholder positions while the map loads; real pins are
+// geographic markers, so the skeleton keeps its own screen-space layout.
+const SKELETON_PIN_POSITIONS: {
+  top?: number;
+  left?: number;
+  right?: number;
+  bottom?: number;
+}[] = [
+  { top: 224, left: 76 },
+  { top: 318, right: 54 },
+  { bottom: 266, left: 128 },
+  { bottom: 344, right: 122 },
+];
+
 function SkeletonMapPins() {
   return (
     <View
@@ -1512,16 +1529,10 @@ function SkeletonMapPins() {
       accessibilityLabel="Loading cafes on the map"
       style={{ position: "absolute", inset: 0 }}
     >
-      {cafeMapPins.map((cafe) => (
+      {SKELETON_PIN_POSITIONS.map((position, index) => (
         <View
-          key={cafe.id}
-          style={{
-            position: "absolute",
-            top: cafe.top,
-            left: cafe.left,
-            right: cafe.right,
-            bottom: cafe.bottom,
-          }}
+          key={`skeleton-pin-${index}`}
+          style={{ position: "absolute", ...position }}
         >
           <View
             style={{
