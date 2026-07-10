@@ -66,7 +66,9 @@ export function profileRows(state: SavedState): ProfileRow[] {
       route: "/route",
     },
     {
-      icon: "⚙",
+      // U+FE0E forces text (monochrome) presentation so iOS doesn't swap in
+      // the colored emoji gear, keeping the row icons on one glyph style.
+      icon: "⚙︎",
       tone: "neutral",
       label: "Settings",
       sub: "Account, privacy, notifications",

@@ -1,8 +1,8 @@
 # Story Backlog
 
 Populated from the CafeMood Map spec (intake #1, 2026-07-06). US-001 through
-US-027 are `implemented` (E06 complete); US-028 remains
-`planned`. Design
+US-030 are `implemented` — every planned story has shipped (E07 QA complete;
+E08 live AI + map complete). Design
 source: extracted handoff under `docs/design/project/` (see
 `docs/product/overview.md`); cloud original on
 [claude.ai/design](https://claude.ai/design/p/c1d6d55d-c7e3-4bc5-b67a-6b50416f5dbd?file=CafeMood+Complete+App.dc.html).
@@ -29,11 +29,12 @@ commitments.
 | E04-cafe-detail-save | Detail, gallery, insight, save, share | Batch 3 | US-014..018 | implemented |
 | E05-planning-contribution | Routes, work/date planners, check-in, clips | Batch 4 | US-019..022 | implemented |
 | E06-library-profile | Saved, collections, taste, profile, states, tabs | Batch 5 | US-023..027 | implemented |
-| E07-qa-demo-polish | Full QA, prototype wiring, demo polish | Batch 6 | US-028 | planned |
+| E07-qa-demo-polish | Full QA, prototype wiring, demo polish | Batch 6 | US-028 | implemented |
 | E08-live-providers | Real provider integrations (AI, map) | Deferral trail | US-029..030 | in progress |
 
-Suggested implementation order: E03 through E06 are complete; E07 (US-028
-full-app QA) remains. Provider integration has begun in E08: US-029 (live AI
+Suggested implementation order: all epics are complete. E07 (US-028 full-app
+QA) passed with two polish defects found and fixed (see
+`epics/E07-qa-demo-polish/US-028-qa-summary.md`). In E08: US-029 (live AI
 finder via a Supabase Edge Function calling Groq, decision 0022 superseding
 the Gemini pick in 0021 after a billing-gated free-tier 429) is implemented
 and live-verified; US-030 (live map home via react-native-maps / Apple Maps,
