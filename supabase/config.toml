@@ -1,0 +1,6 @@
+# Minimal Supabase CLI config for Edge Function serve/deploy (US-029).
+# `supabase link --project-ref <ref>` connects this to your project.
+project_id = "coffee-mood"
+
+[functions.ai-finder]
+verify_jwt = false
