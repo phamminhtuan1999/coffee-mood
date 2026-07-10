@@ -18,6 +18,7 @@ import {
 } from "@/data/ai-finder-fixtures";
 import type { AiAlternative, AiCafe, AiTone } from "@/data/ai-finder-fixtures";
 import { theme } from "@/constants/theme";
+import { runLiveAiFinder } from "@/utils/ai-finder-client";
 import { loadTasteProfile } from "@/utils/taste-profile";
 
 type FinderPhase =
@@ -72,15 +73,28 @@ export default function AiFinderScreen() {
       clearTimeout(thinkingTimer.current);
     }
 
-    thinkingTimer.current = setTimeout(() => {
-      const result = runAiFinder(text, loadTasteProfile());
-
+    const applyResult = (result: ReturnType<typeof runAiFinder>) => {
       setPhase(
         result.status === "match"
           ? { name: "result", match: result.match }
           : { name: "unavailable" },
       );
-    }, AI_THINKING_MS);
+    };
+
+    // Live Gemini call when Supabase env is configured (US-029, decision
+    // 0021); null means unconfigured, which keeps the deterministic demo
+    // matcher below. Live failures resolve to the unavailable state inside
+    // the client, honoring 0013's failure contract.
+    void runLiveAiFinder(text, loadTasteProfile()).then((liveResult) => {
+      if (liveResult) {
+        applyResult(liveResult);
+        return;
+      }
+
+      thinkingTimer.current = setTimeout(() => {
+        applyResult(runAiFinder(text, loadTasteProfile()));
+      }, AI_THINKING_MS);
+    });
   }, []);
 
   const submitPrompt = useCallback(

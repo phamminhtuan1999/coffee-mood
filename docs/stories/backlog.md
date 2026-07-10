@@ -30,9 +30,13 @@ commitments.
 | E05-planning-contribution | Routes, work/date planners, check-in, clips | Batch 4 | US-019..022 | implemented |
 | E06-library-profile | Saved, collections, taste, profile, states, tabs | Batch 5 | US-023..027 | implemented |
 | E07-qa-demo-polish | Full QA, prototype wiring, demo polish | Batch 6 | US-028 | planned |
+| E08-live-providers | Real provider integrations (AI, map) | Deferral trail | US-029..030 | in progress |
 
 Suggested implementation order: E03 through E06 are complete; E07 (US-028
-full-app QA) is the remaining story. Deferred provider work (map provider per
+full-app QA) remains. Provider integration has begun in E08: US-029 (live AI
+finder, Gemini via Supabase Edge Function, decision 0021 accepting 0008's AI
+layer) is implemented pending live-credential verification; US-030 (live
+Mapbox map) is planned. Remaining deferred provider work (map provider per
 decision 0010, AI provider per decision 0013, client-side saves per decision
 0014, share provider per decision 0015, route nav/save/share per decision
 0016, date plan providers per decision 0017, contribution media/pipeline per
