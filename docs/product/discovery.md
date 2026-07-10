@@ -70,8 +70,10 @@ Chips + sliders + warm grouped cards; Apply / Reset.
 - Map provider and AI provider are external systems (high-risk lane at
   implementation; providers proposed in decision 0008, AI server-side only).
 - Map home is live: Apple Maps via react-native-maps (decision 0023,
-  superseding 0010's Mapbox proposal); cafe pins are geographic markers over
-  curated San Diego fixture coordinates. AI finder is live via
-  Groq/Supabase (decisions 0021/0022).
+  superseding 0010's Mapbox proposal). Cafe pins are real places from the
+  OpenStreetMap Overpass API around the device location (decision 0024,
+  US-031), falling back to the curated San Diego fixtures on any
+  location/network failure. AI finder is live via Groq/Supabase (decisions
+  0021/0022).
 - Semantic search quality depends on vibe/score data model — schema is a
   data-model risk flag when defined.

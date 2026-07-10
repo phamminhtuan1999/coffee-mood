@@ -178,15 +178,12 @@ const MIN_LONGITUDE_DELTA = 0.02;
 // visible band between the vibe chips and the sheet.
 const SHEET_LATITUDE_BIAS = 0.22;
 
-function computeMapHomeRegion(): MapRegion {
-  const latitudes = [
-    ...cafeMapPins.map((cafe) => cafe.latitude),
-    CLUSTER_PIN_COORDINATE.latitude,
-  ];
-  const longitudes = [
-    ...cafeMapPins.map((cafe) => cafe.longitude),
-    CLUSTER_PIN_COORDINATE.longitude,
-  ];
+// Camera region containing every coordinate, padded, with the center biased
+// south so pins render in the visible band above the preview sheet. Shared
+// by the fixture region below and the live-cafes camera (US-031).
+export function regionForPins(coordinates: MapCoordinate[]): MapRegion {
+  const latitudes = coordinates.map((point) => point.latitude);
+  const longitudes = coordinates.map((point) => point.longitude);
   const minLatitude = Math.min(...latitudes);
   const maxLatitude = Math.max(...latitudes);
   const minLongitude = Math.min(...longitudes);
@@ -210,4 +207,7 @@ function computeMapHomeRegion(): MapRegion {
 }
 
 // Initial camera for the map home; the current-location FAB re-centers here.
-export const MAP_HOME_REGION: MapRegion = computeMapHomeRegion();
+export const MAP_HOME_REGION: MapRegion = regionForPins([
+  ...cafeMapPins,
+  CLUSTER_PIN_COORDINATE,
+]);

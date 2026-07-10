@@ -35,8 +35,10 @@ import {
   cafeMapPins,
   CLUSTER_PIN_COORDINATE,
   MAP_HOME_REGION,
+  regionForPins,
 } from "@/data/map-pins";
-import type { CafeMapPin } from "@/data/map-pins";
+import type { CafeMapPin, MapRegion } from "@/data/map-pins";
+import { fetchLiveCafes } from "@/utils/live-cafes";
 import { OFFLINE_STATE } from "@/data/system-states";
 import { activeMapFilterCount, applyMapFilters } from "@/utils/map-filters";
 import {
@@ -1070,6 +1072,8 @@ function MainMapHandoff({
     useState<CafeBottomSheetSnapPoint>("half");
   const savedState = useSyncExternalStore(subscribeSaved, getSavedState);
   const mapRef = useRef<MapView>(null);
+  const [liveCafes, setLiveCafes] = useState<CafeMapPin[] | null>(null);
+  const currentRegionRef = useRef<MapRegion>(MAP_HOME_REGION);
   const [mapPhase, setMapPhase] = useState<"loading" | "ready">("loading");
   const [locationDenied, setLocationDenied] = useState(
     stateOverride === "denied",
@@ -1084,6 +1088,62 @@ function MainMapHandoff({
     const timer = setTimeout(() => setMapPhase("ready"), MAP_LOADING_MS);
 
     return () => clearTimeout(timer);
+  }, [stateOverride]);
+
+  // US-031 (decision 0024): load real cafes around the device location
+  // (fixture center fallback). Any failure leaves the fixture pins intact.
+  useEffect(() => {
+    if (stateOverride) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const resolveCenter = async () => {
+      try {
+        const permission = await Location.getForegroundPermissionsAsync();
+
+        if (permission.status !== "granted") {
+          return MAP_HOME_REGION;
+        }
+
+        const position = await Promise.race([
+          Location.getCurrentPositionAsync({}),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000)),
+        ]);
+
+        return position
+          ? {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            }
+          : MAP_HOME_REGION;
+      } catch {
+        return MAP_HOME_REGION;
+      }
+    };
+
+    resolveCenter()
+      .then((center) => fetchLiveCafes(center))
+      .then((pins) => {
+        if (cancelled || !pins || pins.length === 0) {
+          return;
+        }
+
+        const region = regionForPins(pins);
+
+        currentRegionRef.current = region;
+        setLiveCafes(pins);
+        setSelectedCafeId(pins[0].id);
+        mapRef.current?.animateToRegion(region, 600);
+      })
+      .catch(() => {
+        // Fixture pins remain; nothing to surface.
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [stateOverride]);
 
   useEffect(() => {
@@ -1111,13 +1171,16 @@ function MainMapHandoff({
   const mapFilters = useSyncExternalStore(subscribeMapFilters, getMapFilters);
   const activeFilters = activeMapFilterCount(mapFilters);
   const isOffline = stateOverride === "offline";
+  // Live cafes (US-031) replace the fixture world on the map home when the
+  // Overpass fetch succeeds; every failure path keeps the fixtures.
+  const basePins = liveCafes ?? cafeMapPins;
   // Offline surfaces the saved cafes (library-profile.md): the local store
   // keeps working, so saved pins stay on the map while discovery pauses.
   const filteredPins = isOffline
     ? cafeMapPins.filter((cafe) => isCafeSaved(savedState, cafe.id))
     : forceEmpty
       ? []
-      : applyMapFilters(filterCafePins(activeChip), mapFilters);
+      : applyMapFilters(filterCafePins(activeChip, basePins), mapFilters);
   const selectedCafe =
     filteredPins.find((cafe) => cafe.id === selectedCafeId) ??
     filteredPins[0] ??
@@ -1136,17 +1199,20 @@ function MainMapHandoff({
 
   const selectChip = (chip: MapHomeChip) => {
     const nextChip = activeChip === chip ? null : chip;
-    const nextPins = applyMapFilters(filterCafePins(nextChip), mapFilters);
+    const nextPins = applyMapFilters(
+      filterCafePins(nextChip, basePins),
+      mapFilters,
+    );
 
     setActiveChip(nextChip);
-    selectCafe(nextPins[0]?.id ?? cafeMapPins[0].id);
+    selectCafe(nextPins[0]?.id ?? basePins[0].id);
   };
 
   const expandSearch = () => {
     setForceEmpty(false);
     setActiveChip(null);
     resetMapFilters();
-    selectCafe(cafeMapPins[0].id);
+    selectCafe(basePins[0].id);
   };
 
   const enableLocation = async () => {
@@ -1205,7 +1271,7 @@ function MainMapHandoff({
                 />
               </Marker>
             ))}
-        {!isLoading && filteredPins.length > 0 ? (
+        {!isLoading && !liveCafes && filteredPins.length > 0 ? (
           <Marker
             coordinate={CLUSTER_PIN_COORDINATE}
             anchor={{ x: 0.5, y: 1 }}
@@ -1354,8 +1420,8 @@ function MainMapHandoff({
         accessibilityRole="button"
         accessibilityLabel="Use current map location"
         onPress={() => {
-          mapRef.current?.animateToRegion(MAP_HOME_REGION, 400);
-          selectCafe("mostra");
+          mapRef.current?.animateToRegion(currentRegionRef.current, 400);
+          selectCafe(basePins[0].id);
         }}
         style={({ pressed }) => ({
           position: "absolute",
@@ -1629,16 +1695,15 @@ function LocationDeniedCard({
   );
 }
 
-function filterCafePins(activeChip: MapHomeChip | null) {
+function filterCafePins(
+  activeChip: MapHomeChip | null,
+  pins: CafeMapPin[] = cafeMapPins,
+) {
   if (!activeChip) {
-    return cafeMapPins;
+    return pins;
   }
 
-  if (activeChip === "Aesthetic") {
-    return cafeMapPins.filter((cafe) => cafe.tags.includes("Aesthetic"));
-  }
-
-  return cafeMapPins.filter((cafe) => cafe.tags.includes(activeChip));
+  return pins.filter((cafe) => cafe.tags.includes(activeChip));
 }
 
 type MapHomePreviewSheetProps = {
