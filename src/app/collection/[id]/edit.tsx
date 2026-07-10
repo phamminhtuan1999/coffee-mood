@@ -357,10 +357,10 @@ export default function EditCollectionScreen() {
               borderRadius: theme.radius.chip,
               padding: 3,
               justifyContent: "center",
-              alignItems: isPrivate ? "flex-start" : "flex-end",
+              alignItems: isPrivate ? "flex-end" : "flex-start",
               backgroundColor: isPrivate
-                ? theme.colors.surface.borderStrong
-                : theme.colors.brand.oliveMatcha,
+                ? theme.colors.text.espresso900
+                : theme.colors.surface.borderMedium,
             }}
           >
             <View

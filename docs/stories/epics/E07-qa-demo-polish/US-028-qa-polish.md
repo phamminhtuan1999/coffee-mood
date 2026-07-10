@@ -2,7 +2,7 @@
 
 ## Status
 
-planned
+implemented
 
 ## Lane
 
@@ -67,8 +67,16 @@ When updating durable proof status, use numeric booleans:
 
 ## Harness Delta
 
-None yet.
+None — QA used the established deep-link + `xcrun simctl` screenshot flow.
 
 ## Evidence
 
-None yet - story is planned, not selected for implementation.
+- QA summary deliverable: `US-028-qa-summary.md` (same folder) — screens,
+  components, six-flow results, two defects found and fixed (collection-edit
+  privacy switch idiom, profile settings emoji glyph), known gaps/risks.
+- Walkthrough screenshots: `/tmp/qa28-*.png` (20 screens incl. fixed
+  re-shots), iPhone 15 Pro Expo Go, 2026-07-10.
+- Gate after fixes: tsc clean, eslint 0 errors, 49 suites / 332 jest tests
+  green (Node 24).
+- Live paths re-verified during QA: Groq AI finder result, Apple Maps home.
+- Interactive tap-through passes remain pending human manual QA (backlog #2).
