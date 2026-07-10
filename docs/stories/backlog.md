@@ -34,8 +34,9 @@ commitments.
 
 Suggested implementation order: E03 through E06 are complete; E07 (US-028
 full-app QA) remains. Provider integration has begun in E08: US-029 (live AI
-finder, Gemini via Supabase Edge Function, decision 0021 accepting 0008's AI
-layer) is implemented pending live-credential verification; US-030 (live
+finder via a Supabase Edge Function calling Groq, decision 0022 superseding
+the Gemini pick in 0021 after a billing-gated free-tier 429) is implemented
+and live-verified; US-030 (live
 Mapbox map) is planned. Remaining deferred provider work (map provider per
 decision 0010, AI provider per decision 0013, client-side saves per decision
 0014, share provider per decision 0015, route nav/save/share per decision

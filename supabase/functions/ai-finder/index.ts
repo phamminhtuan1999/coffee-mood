@@ -1,10 +1,48 @@
-// Supabase Edge Function: ai-finder (US-029, decision 0021).
-// Asks Gemini 2.5 Flash to pick the best cafe from the curated candidates
-// and write three why-bullets. Stateless; the GEMINI_API_KEY secret never
-// leaves this function (decision 0008: server-side AI only).
+// Supabase Edge Function: ai-finder (US-029, decision 0022).
+// Asks Groq (OpenAI-compatible chat completions, JSON mode) to pick the best
+// cafe from the curated candidates and write three why-bullets. Stateless;
+// the GROQ_API_KEY secret never leaves this function (decision 0008:
+// server-side AI only).
 
-const GEMINI_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+// Model is overridable via the GROQ_MODEL secret so a future deprecation is a
+// secret change, not a code change.
+const GROQ_MODEL = Deno.env.get("GROQ_MODEL") ?? "llama-3.3-70b-versatile";
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Free tiers can return transient 429/503 under load; a short retry usually
+// clears it well within the client timeout.
+async function callGroqWithRetry(
+  apiKey: string,
+  requestBody: string,
+): Promise<Response> {
+  const delays = [0, 700, 1400];
+  let last: Response | null = null;
+
+  for (const delay of delays) {
+    if (delay > 0) {
+      await sleep(delay);
+    }
+
+    const response = await fetch(GROQ_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: requestBody,
+    });
+
+    if (response.status !== 429 && response.status !== 503) {
+      return response;
+    }
+
+    last = response;
+  }
+
+  return last as Response;
+}
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -52,15 +90,19 @@ function buildPrompt(request: FinderRequest): string {
     )
     .join("\n");
 
+  const ids = request.candidates.map((cafe) => `"${cafe.id}"`).join(", ");
+
   return [
     "You match people to cafes in San Diego.",
     `The user asked: "${request.prompt}"`,
     profileLine,
     "Pick the single best cafe for this request from these candidates only:",
     candidateLines,
-    "Write exactly three short why-bullets (under 90 characters each),",
-    "warm and specific, grounded only in the candidate data above.",
-    "Return bestMatchId (one of the candidate ids) and why (the bullets).",
+    "",
+    "Respond with a JSON object of exactly this shape:",
+    `{"bestMatchId": <one of ${ids}>, "why": [three strings]}`,
+    "Each why-bullet is under 90 characters, warm and specific, grounded only",
+    "in the candidate data above. Return JSON only, no prose.",
   ].join("\n");
 }
 
@@ -73,10 +115,10 @@ Deno.serve(async (request: Request) => {
     return json({ error: "POST only" }, 405);
   }
 
-  const apiKey = Deno.env.get("GEMINI_API_KEY");
+  const apiKey = Deno.env.get("GROQ_API_KEY");
 
   if (!apiKey) {
-    console.error("ai-finder: GEMINI_API_KEY is not set");
+    console.error("ai-finder: GROQ_API_KEY is not set");
     return json({ error: "provider not configured" }, 500);
   }
 
@@ -99,44 +141,43 @@ Deno.serve(async (request: Request) => {
 
   const candidateIds = body.candidates.map((cafe) => cafe.id);
 
-  const geminiResponse = await fetch(GEMINI_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-goog-api-key": apiKey,
-    },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: buildPrompt(body) }] }],
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: "OBJECT",
-          properties: {
-            bestMatchId: { type: "STRING", enum: candidateIds },
-            why: {
-              type: "ARRAY",
-              items: { type: "STRING" },
-              minItems: 3,
-              maxItems: 3,
-            },
-          },
-          required: ["bestMatchId", "why"],
+  const groqResponse = await callGroqWithRetry(
+    apiKey,
+    JSON.stringify({
+      model: GROQ_MODEL,
+      temperature: 0.4,
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a concise cafe-matching assistant. You only ever pick " +
+            "from the provided candidate ids and reply with strict JSON.",
         },
-        temperature: 0.4,
-      },
+        { role: "user", content: buildPrompt(body) },
+      ],
     }),
-  });
+  );
 
-  if (!geminiResponse.ok) {
-    const detail = await geminiResponse.text();
-    console.error(`ai-finder: Gemini ${geminiResponse.status}: ${detail}`);
-    return json({ error: "provider error" }, 502);
+  if (!groqResponse.ok) {
+    const detail = await groqResponse.text();
+    console.error(`ai-finder: Groq ${groqResponse.status}: ${detail}`);
+    // Surface the upstream status + a short snippet (never the key — Groq does
+    // not echo it) so failures are diagnosable from the response, not only the
+    // function logs.
+    return json(
+      {
+        error: "provider error",
+        providerStatus: groqResponse.status,
+        providerDetail: detail.slice(0, 300),
+      },
+      502,
+    );
   }
 
   try {
-    const payload = await geminiResponse.json();
-    const text: string | undefined =
-      payload?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const payload = await groqResponse.json();
+    const text: string | undefined = payload?.choices?.[0]?.message?.content;
     const parsed = JSON.parse(text ?? "");
 
     if (
