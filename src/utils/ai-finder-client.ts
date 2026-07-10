@@ -7,7 +7,9 @@ import type { TasteProfile } from "@/utils/taste-profile";
 // Supabase URL + anon key live in the app env, and when they are absent the
 // caller keeps the deterministic fixture matcher (demo mode).
 
-const LIVE_TIMEOUT_MS = 8000;
+// Headroom for the Edge Function's server-side retry on transient provider
+// 503s (see supabase/functions/ai-finder).
+const LIVE_TIMEOUT_MS = 15000;
 
 type LiveFinderConfig = {
   url: string;

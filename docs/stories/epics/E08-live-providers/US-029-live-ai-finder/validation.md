@@ -43,8 +43,21 @@ curl -s -X POST http://127.0.0.1:54321/functions/v1/ai-finder \
 
 ## Acceptance Evidence
 
-- Credential-free gate: pending this story's implementation run.
-- Live pass: BLOCKED on human-provided `EXPO_PUBLIC_SUPABASE_URL`,
-  `EXPO_PUBLIC_SUPABASE_ANON_KEY` (app `.env`) and `GEMINI_API_KEY`
-  (Supabase secrets / `supabase/functions/.env`). Record curl output and
-  simulator screenshot here when done.
+- Credential-free gate (2026-07-10): tsc clean, 48 suites / 328 jest tests
+  green (Node 20), lint clean. Demo-mode simulator smoke unchanged
+  (`/tmp/cafemood-ios-simulator-us029-demo-mode.png`).
+- Provider: switched Gemini → Groq (decision 0022) after Gemini's free tier
+  returned a billing-gated 429; contract and app code unchanged.
+- Live pass (2026-07-10, Groq `llama-3.3-70b-versatile` via the deployed
+  Supabase function):
+  - `curl POST /functions/v1/ai-finder` → `HTTP 200`
+    `{"bestMatchId":"marigold","why":["Known for quiet","Has wifi and
+    outlets","Nearby at 0.5 mi"]}` (~1.0s).
+  - Simulator smoke (iPhone 15 Pro, Expo Go, Metro with live `.env`):
+    `--/ai-finder?prompt=quiet%20work%20spot%20with%20wifi%20and%20outlets`
+    → `/tmp/cafemood-ios-simulator-us029-live.png` — Marigold & Oak best
+    match with the live Groq bullets ("Quiet after 2pm", "Has outlets",
+    "Has wifi"), distinct from the deterministic fixture bullets.
+- Note: the live curl also validated the failure path earlier in the session
+  (404 → deploy, retired model → 404, Gemini 429/503 → provider-error 502),
+  each mapping to the app's AI-unavailable state as designed.

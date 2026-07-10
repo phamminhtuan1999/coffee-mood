@@ -11,9 +11,14 @@ and the "coffee break" prompt simulates the AI-unavailable state (decision
 ## Target Behavior
 
 When Supabase env values are present, Ask AI calls the `ai-finder` Edge
-Function, which asks Gemini 2.5 Flash to pick the best candidate cafe and
+Function, which asks the AI provider to pick the best candidate cafe and
 write three why-bullets grounded in the candidate data and the user's taste
 profile. The result renders through the unchanged US-011 result surface.
+
+Provider note: implemented against Groq (`llama-3.3-70b-versatile`) per
+decision 0022 — the original Gemini pick (0021) hit a billing-gated free-tier
+429, so the provider was swapped behind the same Edge Function contract. The
+`GROQ_API_KEY` secret replaces `GEMINI_API_KEY`; nothing else changed.
 
 - Unconfigured (no `.env`): today's deterministic demo behavior, untouched.
 - Configured + provider failure/timeout/bad response: the designed
