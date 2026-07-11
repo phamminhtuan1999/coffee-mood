@@ -266,3 +266,26 @@ describe("AI unavailable state contract", () => {
     expect(aiUnavailableTitle).toBe("CafeMood AI is taking a coffee break.");
   });
 });
+
+describe("sheet actions (US-032)", () => {
+  it("wires View Photos to the gallery and Directions to the maps app", async () => {
+    const { Linking } = jest.requireActual("react-native");
+    const openUrl = jest
+      .spyOn(Linking, "openURL")
+      .mockResolvedValue(undefined);
+
+    await render(<Index />);
+    await settleMapLoading();
+
+    await fireEvent.press(
+      screen.getByRole("button", { name: "View Photos" }),
+    );
+    expect(mockPush).toHaveBeenCalledWith("/cafe/mostra/gallery");
+
+    await fireEvent.press(screen.getByRole("button", { name: "Directions" }));
+    expect(openUrl).toHaveBeenCalledTimes(1);
+    expect(openUrl.mock.calls[0][0]).toContain("daddr=32.75,-117.13");
+
+    openUrl.mockRestore();
+  });
+});

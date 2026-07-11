@@ -26,6 +26,7 @@ import {
 import type { CafeBestTime, CafeDetail, CafeSimilar } from "@/data/cafe-details";
 import { cafeMapPins } from "@/data/map-pins";
 import type { CafeMapPin, CafeMapPinTone } from "@/data/map-pins";
+import { openDirections, openGoogleMaps } from "@/utils/directions";
 import { getLiveCafeDetail, getLiveCafePin } from "@/utils/live-cafes";
 import { getReviewInsight } from "@/data/review-insights";
 import { getShareCardContent } from "@/data/share-card";
@@ -194,8 +195,8 @@ function LoadedCafeDetail({
   const openShareSheet = () => setSheet("share");
 
   // Copy Link / Share Image / Send to Friend stay inert until a clipboard /
-  // view-shot / share provider lands (decision 0015), matching the other
-  // provider-deferred actions (Directions, Add to Route, Open in Google Maps).
+  // view-shot / share provider lands (decision 0015). Directions and Open in
+  // Google Maps are live OS/web deep links since US-032 (decision 0025).
   const handleShareAction = (_action: ShareAction) => {};
 
   const openSaveSheet = () => {
@@ -611,7 +612,10 @@ function LoadedCafeDetail({
               onPress={() => router.push(`/cafe/${pin.id}/gallery`)}
             />
             <TextActionDivider />
-            <TextAction label="Open in Google Maps" />
+            <TextAction
+              label="Open in Google Maps"
+              onPress={() => openGoogleMaps(pin)}
+            />
           </View>
         </View>
       </ScrollView>
@@ -665,7 +669,8 @@ function LoadedCafeDetail({
         </Pressable>
         <Pressable
           accessibilityRole="button"
-          onPress={undefined}
+          accessibilityLabel="Directions"
+          onPress={() => openDirections(pin)}
           style={({ pressed }) => ({
             flex: 1.2,
             minHeight: theme.sizing.compactControl,

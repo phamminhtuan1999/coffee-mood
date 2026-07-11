@@ -40,6 +40,8 @@ type CafeBottomSheetShellProps = {
   saved?: boolean;
   onSave?: () => void;
   onOpenDetail?: () => void;
+  onDirections?: () => void;
+  onViewPhotos?: () => void;
 };
 
 const snapHeight = {
@@ -84,6 +86,8 @@ export function CafeBottomSheetShell({
   saved = false,
   onSave,
   onOpenDetail,
+  onDirections,
+  onViewPhotos,
 }: CafeBottomSheetShellProps) {
   const height = useDerivedValue(
     () => withTiming(snapHeight[snapPoint], { duration: 220 }),
@@ -343,8 +347,12 @@ export function CafeBottomSheetShell({
               selected={saved}
               onPress={onSave}
             />
-            <CafeButton label="Directions" />
-            <CafeButton label="View Photos" variant="secondary" />
+            <CafeButton label="Directions" onPress={onDirections} />
+            <CafeButton
+              label="View Photos"
+              variant="secondary"
+              onPress={onViewPhotos}
+            />
           </View>
 
       {showExpanded ? (
@@ -433,7 +441,11 @@ export function CafeBottomSheetShell({
             }}
           >
             <CafeButton label="Add to Route" />
-            <CafeButton label="Directions" variant="secondary" />
+            <CafeButton
+              label="Directions"
+              variant="secondary"
+              onPress={onDirections}
+            />
           </View>
         </View>
       ) : null}
