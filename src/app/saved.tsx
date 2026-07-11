@@ -5,7 +5,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppTabBar, EmptyStateCard, ShareCafeSheet, TAB_BAR_CLEARANCE } from "@/components/ui";
 import { theme } from "@/constants/theme";
+import { cafeMapPins } from "@/data/map-pins";
 import type { CafeMapPinTone } from "@/data/map-pins";
+import { openDirections } from "@/utils/directions";
 import {
   SAVED_EMPTY_COPY,
   SAVED_EMPTY_CTA,
@@ -385,11 +387,15 @@ type EntryActionsProps = {
   onShare: () => void;
 };
 
-// The D2 quick actions: Directions stays inert until the map provider lands
-// (decision 0010); Remove and Share are live.
+// The D2 quick actions: Directions opens the OS maps app at the cafe's real
+// coordinates (US-032, decision 0025); Remove and Share are live.
 function EntryActions({ entry, onRemove, onShare }: EntryActionsProps) {
+  const pin = cafeMapPins.find((cafe) => cafe.id === entry.cafeId);
   const actions = [
-    { label: "Directions", onPress: undefined },
+    {
+      label: "Directions",
+      onPress: pin ? () => openDirections(pin) : undefined,
+    },
     { label: "Remove", onPress: onRemove },
     { label: "Share", onPress: onShare },
   ];

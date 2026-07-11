@@ -14,7 +14,9 @@ Editorial and photo-rich, never dense Yelp-style information.
 - Sections: Why it matches your mood, People love, Watch out for, Best time to
   visit, Similar cafés nearby.
 - Actions: Save, Directions, Share, Add to Route, View Photos, Open in Google
-  Maps.
+  Maps. Directions and Open in Google Maps are live OS/web maps deep links at
+  the cafe's real coordinates (US-032, decision 0025); Share providers stay
+  deferred (0015).
 
 States: loading (image/score/summary skeletons), error ("Couldn't load this
 café." CTA "Try Again"), limited data ("Limited vibe data — we're still

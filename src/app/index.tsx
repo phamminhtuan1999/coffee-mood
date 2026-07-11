@@ -38,6 +38,7 @@ import {
   regionForPins,
 } from "@/data/map-pins";
 import type { CafeMapPin, MapRegion } from "@/data/map-pins";
+import { openDirections } from "@/utils/directions";
 import { fetchLiveCafes } from "@/utils/live-cafes";
 import { OFFLINE_STATE } from "@/data/system-states";
 import { activeMapFilterCount, applyMapFilters } from "@/utils/map-filters";
@@ -1565,6 +1566,10 @@ function MainMapHandoff({
           onSnapPointChange={setSheetSnapPoint}
           onSave={toggleSelectedCafeSave}
           onOpenDetail={() => router.push(`/cafe/${selectedCafe.id}` as Href)}
+          onDirections={() => openDirections(selectedCafe)}
+          onViewPhotos={() =>
+            router.push(`/cafe/${selectedCafe.id}/gallery` as Href)
+          }
         />
       ) : null}
 
@@ -1715,6 +1720,8 @@ type MapHomePreviewSheetProps = {
   onSnapPointChange: (snapPoint: CafeBottomSheetSnapPoint) => void;
   onSave: () => void;
   onOpenDetail: () => void;
+  onDirections: () => void;
+  onViewPhotos: () => void;
 };
 
 function MapHomePreviewSheet({
@@ -1726,6 +1733,8 @@ function MapHomePreviewSheet({
   onSnapPointChange,
   onSave,
   onOpenDetail,
+  onDirections,
+  onViewPhotos,
 }: MapHomePreviewSheetProps) {
   return (
     <View
@@ -1756,6 +1765,8 @@ function MapHomePreviewSheet({
         saved={saved}
         onSave={onSave}
         onOpenDetail={onOpenDetail}
+        onDirections={onDirections}
+        onViewPhotos={onViewPhotos}
       />
     </View>
   );

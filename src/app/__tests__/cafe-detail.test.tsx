@@ -288,3 +288,27 @@ describe("cafe detail limited-data state", () => {
     expect(screen.queryByText("Why it matches your mood")).toBeNull();
   });
 });
+
+describe("detail directions actions (US-032)", () => {
+  it("opens the maps app from Directions and the web from Open in Google Maps", async () => {
+    const { Linking } = jest.requireActual("react-native");
+    const openUrl = jest
+      .spyOn(Linking, "openURL")
+      .mockResolvedValue(undefined);
+
+    await render(<CafeDetailScreen />);
+    await settleLoading();
+
+    await fireEvent.press(
+      screen.getByRole("button", { name: "Directions" }),
+    );
+    expect(openUrl.mock.calls[0][0]).toContain("daddr=32.75,-117.13");
+
+    await fireEvent.press(screen.getByText("Open in Google Maps"));
+    expect(openUrl.mock.calls[1][0]).toBe(
+      "https://www.google.com/maps/search/?api=1&query=32.75,-117.13",
+    );
+
+    openUrl.mockRestore();
+  });
+});
