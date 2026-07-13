@@ -1,6 +1,12 @@
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 import {
@@ -17,8 +23,17 @@ import {
   runAiFinder,
 } from "@/data/ai-finder-fixtures";
 import type { AiAlternative, AiCafe, AiTone } from "@/data/ai-finder-fixtures";
+import { cafeMapPins } from "@/data/map-pins";
 import { theme } from "@/constants/theme";
 import { runLiveAiFinder } from "@/utils/ai-finder-client";
+import { openDirections } from "@/utils/directions";
+import { getLiveCafePin } from "@/utils/live-cafes";
+import {
+  getSavedState,
+  isCafeSaved,
+  quickToggleSave,
+  subscribeSaved,
+} from "@/utils/saved-store";
 import { loadTasteProfile } from "@/utils/taste-profile";
 
 type FinderPhase =
@@ -56,7 +71,10 @@ export default function AiFinderScreen() {
   const [phase, setPhase] = useState<FinderPhase>(
     initialPrompt ? { name: "thinking" } : { name: "idle" },
   );
-  const [saved, setSaved] = useState(false);
+  // Real saved state per matched cafe (US-034): the heart reflects and toggles
+  // library membership via the shared store, so it survives re-prompts instead
+  // of a local flag reset on every submit.
+  const savedState = useSyncExternalStore(subscribeSaved, getSavedState);
   const thinkingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const bootstrapped = useRef(false);
 
@@ -99,7 +117,6 @@ export default function AiFinderScreen() {
 
   const submitPrompt = useCallback(
     (text: string) => {
-      setSaved(false);
       setPhase({ name: "thinking" });
       resolveFinder(text);
     },
@@ -281,8 +298,8 @@ export default function AiFinderScreen() {
       {phase.name === "result" ? (
         <AiResultCard
           match={phase.match}
-          saved={saved}
-          onToggleSave={() => setSaved((current) => !current)}
+          saved={isCafeSaved(savedState, phase.match.id)}
+          onToggleSave={() => quickToggleSave(phase.match.id)}
           onViewOnMap={() => router.back()}
           onRefine={() => setPhase({ name: "idle" })}
         />
@@ -307,6 +324,14 @@ function AiResultCard({
   onRefine,
 }: AiResultCardProps) {
   const colors = toneColors[match.tone];
+  // Resolve the recommended cafe back to its map pin for real-coordinate
+  // Directions (US-034): fixtures live in cafeMapPins, live OSM cafes in the
+  // US-031 session cache. A match always comes from one of those candidate
+  // sources, so this normally resolves; the guard keeps Directions from being
+  // a dead tap if it ever does not.
+  const pin =
+    cafeMapPins.find((cafe) => cafe.id === match.id) ??
+    getLiveCafePin(match.id);
 
   return (
     <View
@@ -468,7 +493,12 @@ function AiResultCard({
           selected={saved}
           onPress={onToggleSave}
         />
-        <CafeButton label="Directions" variant="secondary" />
+        <CafeButton
+          label="Directions"
+          variant="secondary"
+          disabled={!pin}
+          onPress={pin ? () => openDirections(pin) : undefined}
+        />
       </View>
 
       <Pressable

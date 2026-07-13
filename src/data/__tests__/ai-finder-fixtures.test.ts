@@ -1,4 +1,5 @@
 import { aiCafes, runAiFinder } from "@/data/ai-finder-fixtures";
+import { cafeMapPins } from "@/data/map-pins";
 import type { TasteProfile } from "@/utils/taste-profile";
 
 const workProfile: TasteProfile = {
@@ -76,5 +77,15 @@ describe("ai cafe fixtures", () => {
     const sorted = [...scores].sort((a, b) => b - a);
 
     expect(scores).toEqual(sorted);
+  });
+
+  it("resolves every fixture id to a map pin with real coordinates (US-034 Directions)", () => {
+    for (const cafe of aiCafes) {
+      const pin = cafeMapPins.find((mapPin) => mapPin.id === cafe.id);
+
+      expect(pin).toBeDefined();
+      expect(typeof pin?.latitude).toBe("number");
+      expect(typeof pin?.longitude).toBe("number");
+    }
   });
 });
