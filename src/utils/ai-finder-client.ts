@@ -1,11 +1,81 @@
 import { aiCafes } from "@/data/ai-finder-fixtures";
-import type { AiFinderResult } from "@/data/ai-finder-fixtures";
+import type { AiCafe, AiFinderResult } from "@/data/ai-finder-fixtures";
+import type { CafeMapPin } from "@/data/map-pins";
+import { getCachedLiveCafes } from "@/utils/live-cafes";
 import type { TasteProfile } from "@/utils/taste-profile";
 
 // Live AI finder client (US-029, decision 0021). Talks to the Supabase Edge
-// Function `ai-finder`; the Gemini key stays server-side. Only the public
+// Function `ai-finder`; the provider key stays server-side. Only the public
 // Supabase URL + anon key live in the app env, and when they are absent the
 // caller keeps the deterministic fixture matcher (demo mode).
+//
+// Candidates are the map's real cafes (US-031) when its cache is warm
+// (US-033, decision 0026), so Ask AI ranks real nearby cafes; the curated
+// fixtures remain the candidate pool on a cold cache.
+
+// Cap sent to the model — nearest-first, tight enough to keep the prompt
+// focused.
+const MAX_LIVE_CANDIDATES = 12;
+
+type FinderCandidate = {
+  id: string;
+  name: string;
+  meta: string;
+  keywords: string[];
+  baseScore: number;
+};
+
+function fixtureCandidate(cafe: (typeof aiCafes)[number]): FinderCandidate {
+  return {
+    id: cafe.id,
+    name: cafe.name,
+    meta: cafe.meta,
+    keywords: cafe.keywords,
+    baseScore: cafe.baseScore,
+  };
+}
+
+function liveCandidate(pin: CafeMapPin): FinderCandidate {
+  return {
+    id: pin.id,
+    name: pin.name,
+    meta: pin.meta,
+    keywords: pin.tags.map((tag) => tag.toLowerCase()),
+    baseScore: Number.parseFloat(pin.score) || 0,
+  };
+}
+
+function bestForLabel(pin: CafeMapPin): string {
+  const top = [...pin.scores].sort(
+    (a, b) => Number.parseFloat(b.value) - Number.parseFloat(a.value),
+  )[0];
+
+  return top ? `Better for ${top.label.toLowerCase()}` : "Nearby pick";
+}
+
+// Adapt a real map cafe into the AiCafe the result card renders: real
+// name/meta/tone (CafeMapPinTone equals AiTone), the model's why-bullets, and
+// alternatives drawn from the other nearby live cafes.
+function liveCafeToAiCafe(
+  pin: CafeMapPin,
+  why: string[],
+  others: CafeMapPin[],
+): AiCafe {
+  return {
+    id: pin.id,
+    name: pin.name,
+    meta: pin.meta,
+    tone: pin.tone,
+    whyItMatches: why.slice(0, 3),
+    alternatives: others.slice(0, 3).map((other) => ({
+      name: other.name,
+      betterFor: bestForLabel(other),
+      tone: other.tone,
+    })),
+    keywords: pin.tags.map((tag) => tag.toLowerCase()),
+    baseScore: Number.parseFloat(pin.score) || 0,
+  };
+}
 
 // Headroom for the Edge Function's server-side retry on transient provider
 // 503s (see supabase/functions/ai-finder).
@@ -44,6 +114,14 @@ export async function runLiveAiFinder(
     return null;
   }
 
+  // Rank the map's real cafes when its cache is warm (US-033); fall back to
+  // the curated fixtures on a cold cache so the demo path is unchanged.
+  const liveCafes = getCachedLiveCafes().slice(0, MAX_LIVE_CANDIDATES);
+  const useLive = liveCafes.length > 0;
+  const candidates = useLive
+    ? liveCafes.map(liveCandidate)
+    : aiCafes.map(fixtureCandidate);
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), LIVE_TIMEOUT_MS);
 
@@ -66,13 +144,7 @@ export async function runLiveAiFinder(
               price: profile.price,
             }
           : null,
-        candidates: aiCafes.map((cafe) => ({
-          id: cafe.id,
-          name: cafe.name,
-          meta: cafe.meta,
-          keywords: cafe.keywords,
-          baseScore: cafe.baseScore,
-        })),
+        candidates,
       }),
     });
 
@@ -84,7 +156,6 @@ export async function runLiveAiFinder(
       bestMatchId?: unknown;
       why?: unknown;
     };
-    const match = aiCafes.find((cafe) => cafe.id === payload.bestMatchId);
     const why = Array.isArray(payload.why)
       ? payload.why.filter(
           (line): line is string =>
@@ -92,7 +163,28 @@ export async function runLiveAiFinder(
         )
       : [];
 
-    if (!match || why.length === 0) {
+    if (why.length === 0) {
+      return { status: "unavailable" };
+    }
+
+    if (useLive) {
+      const pin = liveCafes.find((cafe) => cafe.id === payload.bestMatchId);
+
+      if (!pin) {
+        return { status: "unavailable" };
+      }
+
+      const others = liveCafes.filter((cafe) => cafe.id !== pin.id);
+
+      return {
+        status: "match",
+        match: liveCafeToAiCafe(pin, why, others),
+      };
+    }
+
+    const match = aiCafes.find((cafe) => cafe.id === payload.bestMatchId);
+
+    if (!match) {
       return { status: "unavailable" };
     }
 

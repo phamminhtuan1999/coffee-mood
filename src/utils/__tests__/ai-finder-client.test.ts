@@ -2,6 +2,7 @@ import {
   isLiveFinderConfigured,
   runLiveAiFinder,
 } from "@/utils/ai-finder-client";
+import { fetchLiveCafes, resetLiveCafesForTests } from "@/utils/live-cafes";
 
 const originalFetch = global.fetch;
 
@@ -18,8 +19,48 @@ function clearEnv() {
 afterEach(() => {
   clearEnv();
   global.fetch = originalFetch;
+  resetLiveCafesForTests();
   jest.restoreAllMocks();
 });
+
+// Warm the US-031 live-cafe cache with two real-shaped OSM cafes so the
+// finder ranks live candidates instead of the fixtures (US-033).
+async function warmLiveCache() {
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({
+      elements: [
+        {
+          type: "node",
+          id: 501,
+          lat: 32.7492,
+          lon: -117.1299,
+          tags: {
+            amenity: "cafe",
+            name: "Caffè Calabria",
+            cuisine: "coffee_shop",
+            internet_access: "wlan",
+            outdoor_seating: "yes",
+            "addr:street": "30th Street",
+          },
+        },
+        {
+          type: "node",
+          id: 502,
+          lat: 32.751,
+          lon: -117.132,
+          tags: {
+            amenity: "cafe",
+            name: "Santos Coffee",
+            "addr:street": "University Ave",
+          },
+        },
+      ],
+    }),
+  }) as unknown as typeof fetch;
+
+  await fetchLiveCafes({ latitude: 32.7466, longitude: -117.1297 });
+}
 
 describe("live finder configuration gate", () => {
   it("is unconfigured without the Supabase env values", async () => {
@@ -83,6 +124,58 @@ describe("live finder request and mapping", () => {
       // Fixture surface data survives the merge.
       expect(result.match.alternatives.length).toBeGreaterThan(0);
     }
+  });
+
+  it("ranks the map's live cafes when the cache is warm (US-033)", async () => {
+    configureEnv();
+    await warmLiveCache();
+
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        bestMatchId: "osm-node-501",
+        why: ["Wi-Fi reported.", "Outdoor seating.", "On 30th Street."],
+      }),
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const result = await runLiveAiFinder("quiet work spot with wifi", null);
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    // Real OSM ids travel as candidates, not the fixtures.
+    expect(body.candidates.map((cafe: { id: string }) => cafe.id)).toEqual([
+      "osm-node-501",
+      "osm-node-502",
+    ]);
+    expect(body.candidates[0].name).toBe("Caffè Calabria");
+
+    expect(result?.status).toBe("match");
+    if (result?.status === "match") {
+      // Winner is the real cafe, with the model's bullets.
+      expect(result.match.name).toBe("Caffè Calabria");
+      expect(result.match.id).toBe("osm-node-501");
+      expect(result.match.whyItMatches).toEqual([
+        "Wi-Fi reported.",
+        "Outdoor seating.",
+        "On 30th Street.",
+      ]);
+      // Alternatives come from the other nearby live cafe.
+      expect(result.match.alternatives[0].name).toBe("Santos Coffee");
+    }
+  });
+
+  it("falls back to fixtures for an unknown live id", async () => {
+    configureEnv();
+    await warmLiveCache();
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ bestMatchId: "osm-node-999", why: ["x"] }),
+    }) as unknown as typeof fetch;
+
+    expect(await runLiveAiFinder("anything", null)).toEqual({
+      status: "unavailable",
+    });
   });
 
   it("maps provider failures to the unavailable state", async () => {

@@ -5,8 +5,8 @@ not just rating** — for work, dates, photos, quiet time, or café-hopping
 routes.
 
 > **Status: implementation in progress.** The product spec is decomposed, all
-> screens are designed, and US-001 through US-010 are implemented. US-011 is
-> the next planned story.
+> screens are designed, and US-001 through US-032 are implemented. No planned
+> product story is currently selected.
 
 ## Where Things Stand
 
@@ -14,9 +14,9 @@ routes.
 | --- | --- |
 | Product contracts | 7 docs in `docs/product/` (overview, design system, 5 domains) |
 | Design | 100% screen coverage in `docs/design/project/` (4 `.dc.html` files); mirrored to the claude.ai "CafeMood Map" design project |
-| Stories | 10 implemented, 18 planned across epics E01–E07 (`docs/stories/epics/`) |
-| Tech stack | Proposed, not accepted — `docs/decisions/0008-cafemood-tech-stack.md` |
-| Implementation | US-001..US-010 complete: design system, onboarding/auth/location/taste, map home, bottom sheet states, and search |
+| Stories | 32 implemented across epics E01–E08 (`docs/stories/epics/`) |
+| Tech stack | Expo baseline plus accepted testing, AI, map, and live-cafe decisions; see `docs/decisions/` |
+| Implementation | US-001..US-032 complete: the full designed app, QA/polish, live AI, Apple Maps, real nearby cafes, photo wiring, and OS map directions |
 
 ## Design Source
 
@@ -72,7 +72,7 @@ Do not install stack dependencies until the story that needs them is selected.
 src/               app code (routes in src/app, ui kit in src/components/ui)
 docs/product/      product contracts (the living spec)
 docs/design/       design handoff — .dc.html prototypes + support files
-docs/stories/      epics E01–E07, 28 story packets with design references
+docs/stories/      epics E01–E08, 32 implemented story packets
 docs/decisions/    durable decision records
 docs/templates/    story / decision / validation templates
 scripts/           harness CLI (schema in scripts/schema/)
