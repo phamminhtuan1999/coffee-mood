@@ -2,22 +2,32 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import MapView, { Marker } from "react-native-maps";
 
-import { MapPreviewSurface, PhotoMapPin, VibeChip } from "@/components/ui";
+import { PhotoMapPin, VibeChip } from "@/components/ui";
 import { theme } from "@/constants/theme";
 import {
-  findSearchResults,
+  MAP_HOME_REGION,
+  regionForPins,
+} from "@/data/map-pins";
+import {
   recentSearches,
   suggestedSearches,
 } from "@/data/search-fixtures";
 import type { SearchResult } from "@/data/search-fixtures";
+import { searchCafes } from "@/utils/cafe-search";
 
-const defaultQuery = "quiet cafe with parking";
+// Empty opens on the nearest cafes (filterSearchResults returns the first
+// results for a blank query) — a real "nearby" default rather than a canned
+// query that may not match any real cafe.
+const defaultQuery = "";
 
 export function SearchScreenContent() {
   const [query, setQuery] = useState(defaultQuery);
   const trimmedQuery = query.trim();
-  const results = findSearchResults(trimmedQuery);
+  // Ranks the map's real nearby cafes when its cache is warm (US-035); the
+  // curated fixtures remain the cold-cache fallback.
+  const results = searchCafes(trimmedQuery);
   const hasResults = results.length > 0;
 
   const selectQuery = (nextQuery: string) => {
@@ -180,6 +190,16 @@ function SearchChipSection({
 
 function MiniMapPreview({ results }: { results: SearchResult[] }) {
   const visibleResults = results.slice(0, 3);
+  // Frame the preview on the real result coordinates (US-035); fall back to the
+  // map home region when there are no results to place.
+  const region = visibleResults.length
+    ? regionForPins(
+        visibleResults.map((result) => ({
+          latitude: result.latitude,
+          longitude: result.longitude,
+        })),
+      )
+    : MAP_HOME_REGION;
 
   return (
     <View
@@ -192,49 +212,57 @@ function MiniMapPreview({ results }: { results: SearchResult[] }) {
         backgroundColor: theme.colors.background.warmPaper,
       }}
     >
-      <MapPreviewSurface>
-        {visibleResults.map((result) => (
-          <View
+      <MapView
+        style={{ flex: 1 }}
+        region={region}
+        scrollEnabled={false}
+        zoomEnabled={false}
+        rotateEnabled={false}
+        pitchEnabled={false}
+        pointerEvents="none"
+        accessibilityLabel="Map of search results"
+      >
+        {visibleResults.map((result, index) => (
+          <Marker
             key={`map-${result.id}`}
-            style={{
-              position: "absolute",
-              top: result.mapPosition.top,
-              left: result.mapPosition.left,
-              right: result.mapPosition.right,
-              bottom: result.mapPosition.bottom,
-              transform: [{ scale: 0.74 }],
+            coordinate={{
+              latitude: result.latitude,
+              longitude: result.longitude,
             }}
+            anchor={{ x: 0.5, y: 1 }}
           >
-            <PhotoMapPin
-              label={`${result.name} map result`}
-              score={result.score}
-              selected={result.id === visibleResults[0]?.id}
-              tone={result.tone}
-            />
-          </View>
+            <View style={{ transform: [{ scale: 0.74 }] }}>
+              <PhotoMapPin
+                label={`${result.name} map result`}
+                score={result.score}
+                selected={index === 0}
+                tone={result.tone}
+              />
+            </View>
+          </Marker>
         ))}
-        <View
+      </MapView>
+      <View
+        style={{
+          position: "absolute",
+          right: theme.spacing.sm,
+          bottom: theme.spacing.sm,
+          paddingHorizontal: theme.spacing.sm,
+          paddingVertical: 5,
+          borderRadius: theme.radius.chip,
+          backgroundColor: theme.colors.surface.cardCream,
+        }}
+      >
+        <Text
           style={{
-            position: "absolute",
-            right: theme.spacing.sm,
-            bottom: theme.spacing.sm,
-            paddingHorizontal: theme.spacing.sm,
-            paddingVertical: 5,
-            borderRadius: theme.radius.chip,
-            backgroundColor: theme.colors.surface.cardCream,
+            ...theme.typography.caption,
+            fontFamily: theme.fonts.family.sansBold,
+            color: theme.colors.text.espresso700,
           }}
         >
-          <Text
-            style={{
-              ...theme.typography.caption,
-              fontFamily: theme.fonts.family.sansBold,
-              color: theme.colors.text.espresso700,
-            }}
-          >
-            {results.length} {results.length === 1 ? "match" : "matches"} nearby
-          </Text>
-        </View>
-      </MapPreviewSurface>
+          {results.length} {results.length === 1 ? "match" : "matches"} nearby
+        </Text>
+      </View>
     </View>
   );
 }

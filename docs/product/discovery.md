@@ -36,7 +36,11 @@ Normal + semantic queries ("quiet cafe with parking", "cute matcha place",
 "work cafe open late", "date spot near La Jolla"). Sections: recent searches,
 suggested searches, visual result cards, mini map preview. Result card: photo,
 name, distance, vibe tags, match reason, score badge. Editorial cards — no
-plain Yelp rows.
+plain Yelp rows. Search ranks the real nearby OSM cafes when the map cache is
+warm (decision 0024, US-035); the curated fixtures are the cold-cache/offline
+fallback. The mini map preview is a real Apple Maps preview with markers at the
+result coordinates. Recent/suggested chips stay curated — they are query
+prompts, not cafe data.
 
 ## AI Café Finder
 
@@ -76,6 +80,8 @@ Chips + sliders + warm grouped cards; Apply / Reset.
   location/network failure. AI finder is live via Groq/Supabase (decisions
   0021/0022) and ranks those same real nearby cafes when the map cache is
   warm (decision 0026, US-033); the four fixtures remain the cold-cache/demo
-  candidate pool.
+  candidate pool. Search likewise ranks those real nearby cafes when the cache
+  is warm (US-035), fixtures on a cold cache — no new provider or network call,
+  it reuses the map's OSM session cache and matches locally.
 - Semantic search quality depends on vibe/score data model — schema is a
   data-model risk flag when defined.
