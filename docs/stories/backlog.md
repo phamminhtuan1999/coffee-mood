@@ -1,8 +1,9 @@
 # Story Backlog
 
 Populated from the CafeMood Map spec (intake #1, 2026-07-06). US-001 through
-US-030 are `implemented` — every planned story has shipped (E07 QA complete;
-E08 live AI + map complete). Design
+US-033 are `implemented` — every planned story has shipped (E07 QA complete;
+E08 live AI, map, cafe data, directions, and AI-over-live-cafes complete).
+Design
 source: extracted handoff under `docs/design/project/` (see
 `docs/product/overview.md`); cloud original on
 [claude.ai/design](https://claude.ai/design/p/c1d6d55d-c7e3-4bc5-b67a-6b50416f5dbd?file=CafeMood+Complete+App.dc.html).
@@ -30,7 +31,7 @@ commitments.
 | E05-planning-contribution | Routes, work/date planners, check-in, clips | Batch 4 | US-019..022 | implemented |
 | E06-library-profile | Saved, collections, taste, profile, states, tabs | Batch 5 | US-023..027 | implemented |
 | E07-qa-demo-polish | Full QA, prototype wiring, demo polish | Batch 6 | US-028 | implemented |
-| E08-live-providers | Real provider integrations (AI, map, cafes) | Deferral trail | US-029..031 | implemented |
+| E08-live-providers | Real provider integrations (AI, map, cafes, directions) | Deferral trail | US-029..033 | implemented |
 
 Suggested implementation order: all epics are complete. E07 (US-028 full-app
 QA) passed with two polish defects found and fixed (see
@@ -42,9 +43,11 @@ decision 0023 superseding 0010's Mapbox proposal — no accounts, Expo Go
 preserved) is implemented and simulator-verified; US-031 (real cafes on the
 map home from the keyless OpenStreetMap Overpass API around the device
 location, decision 0024, fixtures as fallback) is implemented and
-live-verified. Remaining deferred provider
-work (directions/navigation per decision 0010, backend persistence of saves
-per decision 0014, share provider per decision 0015, route nav/save/share per decision
+live-verified; US-032 (OS map deep links for Directions plus sheet-to-gallery
+wiring, decision 0025 superseding decision 0010's directions deferral) is
+implemented and verified. Remaining deferred provider work (backend
+persistence of saves per decision 0014, share provider per decision 0015,
+route nav/save/share per decision
 0016, date plan providers per decision 0017, contribution media/pipeline per
 decision 0018, collection editing extensions per decision 0019, local account
 semantics and notification delivery per decision 0020) must expand to the

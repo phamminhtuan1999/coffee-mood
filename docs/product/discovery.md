@@ -74,6 +74,8 @@ Chips + sliders + warm grouped cards; Apply / Reset.
   OpenStreetMap Overpass API around the device location (decision 0024,
   US-031), falling back to the curated San Diego fixtures on any
   location/network failure. AI finder is live via Groq/Supabase (decisions
-  0021/0022).
+  0021/0022) and ranks those same real nearby cafes when the map cache is
+  warm (decision 0026, US-033); the four fixtures remain the cold-cache/demo
+  candidate pool.
 - Semantic search quality depends on vibe/score data model — schema is a
   data-model risk flag when defined.

@@ -236,6 +236,13 @@ export function isLiveCafeId(id: string): boolean {
   return id.startsWith("osm-");
 }
 
+// The map home's last successful Overpass fetch (US-031). The AI finder
+// reuses this session cache as its candidate pool (US-033) — empty until the
+// map loads real cafes, in which case the finder falls back to fixtures.
+export function getCachedLiveCafes(): CafeMapPin[] {
+  return lastLivePins;
+}
+
 export function getLiveCafePin(id: string): CafeMapPin | undefined {
   return lastLivePins.find((pin) => pin.id === id);
 }

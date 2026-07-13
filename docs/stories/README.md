@@ -3,10 +3,10 @@
 Stories are work packets. They turn product intent into bounded implementation
 and validation work.
 
-Current packets: 10 implemented stories and 18 planned stories across epics
-E01–E07 (CafeMood Map spec). See `backlog.md` for the epic table and
-`scripts/bin/harness-cli query matrix` for durable status. US-011 is the next
-planned story.
+Current packets: 32 implemented stories across epics E01–E08 (CafeMood Map
+spec plus live-provider follow-through). See `backlog.md` for the epic table
+and `scripts/bin/harness-cli query matrix` for durable status. No planned
+product story is currently selected.
 
 ## Normal Story
 
