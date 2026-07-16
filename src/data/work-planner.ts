@@ -1,5 +1,5 @@
 import { cafeMapPins } from "@/data/map-pins";
-import type { CafeMapPinTone } from "@/data/map-pins";
+import type { CafeMapPin, CafeMapPinTone } from "@/data/map-pins";
 
 // Work session planner data layer (frame E3). Ranking is deterministic from
 // the pin fixtures plus work-specific confidence data - no live AI or
@@ -106,18 +106,24 @@ const QUIET_NOISE_CEILING = 4;
 // over Hearth).
 const NEED_WEIGHT = 0.6;
 
-function meetsNeed(pinId: string, need: WorkNeed): boolean {
-  const pin = cafeMapPins.find((candidate) => candidate.id === pinId);
-
-  if (!pin) {
-    return false;
-  }
-
+// Pin-based so the fixture ranking and the live-cafe ranking (US-036,
+// utils/planner-cafes) score candidates identically.
+export function meetsNeed(pin: CafeMapPin, need: WorkNeed): boolean {
   if (need === "Very quiet") {
     return pin.moodScores.noise <= QUIET_NOISE_CEILING;
   }
 
   return pin.needs.includes(NEED_TAGS[need] as (typeof pin.needs)[number]);
+}
+
+// Shared ranking: work score adjusted by how many selected needs the pin meets.
+export function workRank(pin: CafeMapPin, needs: WorkNeed[]): number {
+  const needAdjust = needs.reduce(
+    (total, need) => total + (meetsNeed(pin, need) ? NEED_WEIGHT : -NEED_WEIGHT),
+    0,
+  );
+
+  return pin.moodScores.work + needAdjust;
 }
 
 export type WorkSpotsPlan = {
@@ -134,16 +140,10 @@ export function findWorkSpots(inputs: WorkSessionInputs): WorkSpotsPlan {
         return null;
       }
 
-      const needAdjust = inputs.needs.reduce(
-        (total, need) =>
-          total + (meetsNeed(cafeId, need) ? NEED_WEIGHT : -NEED_WEIGHT),
-        0,
-      );
-
       return {
         pin,
         profile: WORK_PROFILES[cafeId],
-        rank: pin.moodScores.work + needAdjust,
+        rank: workRank(pin, inputs.needs),
       };
     })
     .filter((entry): entry is NonNullable<typeof entry> => entry !== null)

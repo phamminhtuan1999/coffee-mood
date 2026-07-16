@@ -58,3 +58,12 @@ Photo-first, minimal friction — not a heavy social posting flow.
   and confidence indicators in `discovery.md` / `cafe-detail.md`.
 - User-generated media implies storage + moderation concerns at implementation
   (external systems + data model flags).
+- The work, date, and route planners build on the real nearby OpenStreetMap
+  cafes when the map cache is warm (decision 0024, US-036), falling back to the
+  curated fixtures on a cold cache — no new provider or network call. The route
+  measures real walking distance between stops and offers real nearby cafes as
+  swap alternatives. Live planner copy is derived from what OSM actually
+  reports (street, Wi-Fi, outdoor seating, specialty tag, distance) plus the
+  US-031 score estimates, so it is thinner than the fixtures' hand-written
+  editorial by design: per-cafe specifics with no data source are not invented.
+  Richer live copy depends on the community check-in pipeline (decision 0018).

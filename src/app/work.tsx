@@ -10,7 +10,6 @@ import {
   WORK_END_TIMES,
   WORK_NEEDS,
   WORK_START_TIMES,
-  findWorkSpots,
   sessionSentence,
 } from "@/data/work-planner";
 import type {
@@ -20,6 +19,7 @@ import type {
   WorkSpotsPlan,
 } from "@/data/work-planner";
 import type { CafeMapPinTone } from "@/data/map-pins";
+import { planWorkSpots } from "@/utils/planner-cafes";
 import {
   getSavedState,
   isCafeSaved,
@@ -53,7 +53,7 @@ export default function WorkPlannerScreen() {
   // QA override ?state=results renders the ranked results on load so the
   // simulator smoke can capture the full screen deterministically.
   const [plan, setPlan] = useState<WorkSpotsPlan | null>(() =>
-    params.state === "results" ? findWorkSpots(DEFAULT_WORK_INPUTS) : null,
+    params.state === "results" ? planWorkSpots(DEFAULT_WORK_INPUTS) : null,
   );
   const savedState = useSyncExternalStore(subscribeSaved, getSavedState);
 
@@ -159,7 +159,7 @@ export default function WorkPlannerScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Find Work Spots"
-          onPress={() => setPlan(findWorkSpots(inputs))}
+          onPress={() => setPlan(planWorkSpots(inputs))}
           style={({ pressed }) => ({
             minHeight: theme.sizing.control,
             alignItems: "center",
