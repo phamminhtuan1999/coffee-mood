@@ -6,8 +6,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { theme } from "@/constants/theme";
 import type { CafeMapPinTone } from "@/data/map-pins";
-import { getStopAlternatives } from "@/data/route-plan";
 import type { RouteAlternative } from "@/data/route-plan";
+import { planStopAlternatives } from "@/utils/planner-cafes";
 import {
   ensureActiveRoute,
   getRoutePlanner,
@@ -44,7 +44,13 @@ export default function ReplaceStopScreen() {
 
   const stopIndex = parseStopIndex(params.stop, route.stops.length);
   const currentStop = route.stops[stopIndex];
-  const alternatives = getStopAlternatives();
+  // Offer real nearby cafes that are not already on the route (US-036), with
+  // reasons and detours measured against the stop being replaced; the curated
+  // pool stands in on a cold cache.
+  const alternatives = planStopAlternatives(
+    route.stops.map((stop) => stop.cafeId),
+    currentStop.cafeId,
+  );
 
   const commitReplace = () => {
     const chosen = alternatives.find((alt) => alt.cafeId === selectedId);

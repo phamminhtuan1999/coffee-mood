@@ -142,6 +142,26 @@ const TRANSPORT_DISTANCE: Record<
   transit: { perStop: 0.9, verb: "transit" },
 };
 
+// Route metadata shared by the fixture arc and the live-cafe route (US-036,
+// utils/planner-cafes) so both read identically for the same inputs.
+export function routeSubtitle(inputs: RoutePlannerInputs): string {
+  return `${DURATION_WORD[inputs.durationId]} ${MOOD_PHRASE[inputs.moodId]} café hopping route near you`;
+}
+
+export function routeDurationLabel(durationId: RouteDurationId): string {
+  return DURATION_APPROX[durationId];
+}
+
+export function routeTransportVerb(transportId: RouteTransportId): string {
+  return TRANSPORT_DISTANCE[transportId].verb;
+}
+
+// The curated arc's role vocabulary (morning latte -> dessert -> sunset ->
+// focus break) keeps a live route's shape coherent for the same stop count.
+export function routeRoleForIndex(index: number): string {
+  return ROUTE_ARC[index % ROUTE_ARC.length].role;
+}
+
 export function clampStopCount(count: number): number {
   if (Number.isNaN(count)) {
     return DEFAULT_ROUTE_INPUTS.stopCount;
@@ -158,7 +178,7 @@ export function generateRoute(inputs: RoutePlannerInputs): GeneratedRoute {
 
   return {
     title: "Saturday Café Route",
-    subtitle: `${DURATION_WORD[inputs.durationId]} ${MOOD_PHRASE[inputs.moodId]} café hopping route near you`,
+    subtitle: routeSubtitle(inputs),
     distanceLabel: `${distance} mi ${transport.verb}`,
     durationLabel: DURATION_APPROX[inputs.durationId],
     stopsLabel: `${stopCount} stops`,

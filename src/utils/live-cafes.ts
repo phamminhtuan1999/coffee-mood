@@ -62,7 +62,9 @@ function estimatedScore(
   return Math.round(value * 10) / 10;
 }
 
-function distanceMiles(a: MapCoordinate, b: MapCoordinate): number {
+// Exported for the live route planner (US-036), which measures real distance
+// between consecutive stops instead of estimating per-stop.
+export function distanceMiles(a: MapCoordinate, b: MapCoordinate): number {
   const earthRadiusMiles = 3958.8;
   const toRad = (degrees: number) => (degrees * Math.PI) / 180;
   const dLat = toRad(b.latitude - a.latitude);

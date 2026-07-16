@@ -11,10 +11,10 @@ import {
   DATE_MOODS,
   DATE_TIMES,
   DEFAULT_DATE_INPUTS,
-  createDatePlan,
 } from "@/data/date-plan";
 import type { DateMood, DatePlan, DatePlanInputs } from "@/data/date-plan";
 import type { CafeMapPinTone } from "@/data/map-pins";
+import { planDate } from "@/utils/planner-cafes";
 
 const planSwatch: Record<CafeMapPinTone, string> = {
   terracotta: theme.colors.brand.terracotta,
@@ -38,19 +38,19 @@ export default function DatePlanScreen() {
   // QA override ?state=plan renders the generated plan on load so the
   // simulator smoke can capture the full screen deterministically.
   const [plan, setPlan] = useState<DatePlan | null>(() =>
-    params.state === "plan" ? createDatePlan(DEFAULT_DATE_INPUTS) : null,
+    params.state === "plan" ? planDate(DEFAULT_DATE_INPUTS) : null,
   );
 
   const createPlan = () => {
     setVariant(0);
-    setPlan(createDatePlan(inputs));
+    setPlan(planDate(inputs));
   };
 
   const shufflePlan = () => {
     const next = variant + 1;
 
     setVariant(next);
-    setPlan(createDatePlan(inputs, next));
+    setPlan(planDate(inputs, next));
   };
 
   return (

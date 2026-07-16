@@ -1,7 +1,6 @@
 import {
   DEFAULT_ROUTE_INPUTS,
   clampStopCount,
-  generateRoute,
   stopFromAlternative,
 } from "@/data/route-plan";
 import type {
@@ -9,6 +8,7 @@ import type {
   RouteAlternative,
   RoutePlannerInputs,
 } from "@/data/route-plan";
+import { planRoute } from "@/utils/planner-cafes";
 
 // Ephemeral, session-scoped route state shared across the planner -> route
 // detail -> replace-stop flow. Unlike map filters or saved cafés, a generated
@@ -57,7 +57,7 @@ export function setRouteInputs(partial: Partial<RoutePlannerInputs>): void {
 }
 
 export function generateActiveRoute(): void {
-  commit({ ...cached, route: generateRoute(cached.inputs) });
+  commit({ ...cached, route: planRoute(cached.inputs) });
 }
 
 // Guarantees a route exists (used by the detail/replace screens so a cold deep
