@@ -53,6 +53,10 @@ photos, Good latte, Open late, Outdoor chill). Warm AI card — not a chatbot UI
 Communal Coffee", "Better for photos: Garden Café", "Better for parking:
 Better Buzz"); actions View on Map / Save / Get Directions / Refine Search;
 confidence line "Based on reviews, photos, hours, and your taste profile."
+Save and Directions act on the recommended café: Save persists it to the
+library (same one-tap behavior as the map heart) and Directions opens the OS
+maps app at the café's real coordinates (decision 0026 follow-up, US-034) —
+whether the match is a real nearby café or a cold-cache fixture.
 
 ## Advanced Filters
 

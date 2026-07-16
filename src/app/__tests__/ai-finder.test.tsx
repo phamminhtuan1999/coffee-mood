@@ -2,6 +2,11 @@ import { act, fireEvent, render, screen } from "@testing-library/react-native";
 
 import AiFinderScreen from "@/app/ai-finder";
 import { AI_THINKING_MS, aiConfidenceLine } from "@/data/ai-finder-fixtures";
+import {
+  getSavedState,
+  isCafeSaved,
+  resetSavedStore,
+} from "@/utils/saved-store";
 
 const mockBack = jest.fn();
 let mockParams: { prompt?: string } = {};
@@ -26,10 +31,12 @@ describe("AiFinderScreen", () => {
     jest.useFakeTimers();
     mockBack.mockClear();
     mockParams = {};
+    resetSavedStore();
   });
 
   afterEach(() => {
     jest.useRealTimers();
+    resetSavedStore();
   });
 
   it("renders the finder headline, prompt input, and six suggestion chips", async () => {
@@ -83,15 +90,46 @@ describe("AiFinderScreen", () => {
     expect(screen.getByText("Terrace & Thistle")).toBeOnTheScreen();
   });
 
-  it("toggles the save action on the result card", async () => {
+  it("persists the matched cafe to the saved store and toggles it back off", async () => {
+    await render(<AiFinderScreen />);
+
+    // "Good latte" resolves to the Mostra fixture.
+    await fireEvent.press(screen.getByRole("button", { name: "Good latte" }));
+    await settleThinking();
+
+    expect(isCafeSaved(getSavedState(), "mostra")).toBe(false);
+
+    await fireEvent.press(screen.getByRole("button", { name: "Save cafe" }));
+
+    expect(screen.getByRole("button", { name: "Saved cafe" })).toBeOnTheScreen();
+    expect(isCafeSaved(getSavedState(), "mostra")).toBe(true);
+
+    // The heart is store-backed, so a second tap unsaves it.
+    await fireEvent.press(screen.getByRole("button", { name: "Saved cafe" }));
+
+    expect(screen.getByRole("button", { name: "Save cafe" })).toBeOnTheScreen();
+    expect(isCafeSaved(getSavedState(), "mostra")).toBe(false);
+  });
+
+  it("opens the OS maps app at the matched cafe's coordinates from Directions", async () => {
+    const { Linking } = jest.requireActual("react-native");
+    const openUrl = jest
+      .spyOn(Linking, "openURL")
+      .mockResolvedValue(undefined);
+
     await render(<AiFinderScreen />);
 
     await fireEvent.press(screen.getByRole("button", { name: "Good latte" }));
     await settleThinking();
 
-    await fireEvent.press(screen.getByRole("button", { name: "Save cafe" }));
+    await fireEvent.press(screen.getByRole("button", { name: "Directions" }));
 
-    expect(screen.getByRole("button", { name: "Saved cafe" })).toBeOnTheScreen();
+    // Mostra's real coordinates (32.75, -117.13), Apple Maps scheme on iOS.
+    expect(openUrl.mock.calls[0][0]).toBe(
+      "maps://?daddr=32.75,-117.13&q=Mostra%20Coffee",
+    );
+
+    openUrl.mockRestore();
   });
 
   it("returns to the input state via Refine Search, keeping the prompt", async () => {
